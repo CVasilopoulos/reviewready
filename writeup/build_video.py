@@ -125,13 +125,13 @@ def shots():
         f'<tr><td class="n">{n}</td><td>{esc(t)}</td><td>{d}</td>'
         f'<td><span class="pill bad">closed unreviewed</span></td></tr>'
         for n, t, d in PR_ROWS)
-    s.append((12.0, [(
+    s.append((11.0, [(
         f"""<h2>Four working fixes. <em>Sixty-one days open.</em></h2>
         <table><tr><th>PR</th><th>What it fixed</th><th>Open for</th><th>Outcome</th></tr>{rows}</table>""",
         "These four pull requests fix real bugs. They waited seventeen, fourteen, sixteen and fourteen days. "
         "Then a bot closed them. <b>Nobody read them.</b>")]))
 
-    s.append((8.0, [(
+    s.append((7.0, [(
         f"""<h2>Four working fixes. <em>Sixty-one days open.</em></h2>
         <table><tr><th>PR</th><th>What it fixed</th><th>Open for</th><th>Outcome</th></tr>{rows}</table>""",
         "Two of the four were later fixed all over again, from scratch, by <b>other people</b>.")]))
@@ -149,7 +149,7 @@ def shots():
         </div>""",
         "The maintainers already automated what they could. <b>One counts days. One counts files.</b>")]))
 
-    s.append((11.0, [(
+    s.append((10.0, [(
         """<h2>But the rules that decide a pull request <em>are prose.</em></h2>
         <div class="card"><div class="q">“Any bugfix PR must be accompanied by a screenshot of the error …
           and the script/tool running without error afterward”<div class="src">CONTRIBUTING.md:19</div></div></div>
@@ -173,6 +173,20 @@ def shots():
         </div>""",
         "So IBM Bob read them and compiled them into an executable contract. "
         "<b>Twenty-seven rules</b> — each citing the sentence it came from.")]))
+
+    s.append((10.0, [(
+        """<h2>And it did it <em>in parallel.</em></h2>
+        <div class="card"><h3>Session 01 · subagents · from Bob's own database</h3>
+        <table style="font-size:25px"><tr><th>started</th><th>Bobcoins</th><th>surveying</th></tr>
+        <tr><td class="n">19:36:14</td><td>0.170218</td><td><code>vesuvius/</code></td></tr>
+        <tr><td class="n">19:36:14</td><td>0.206261</td><td><code>volume-cartographer/</code></td></tr>
+        <tr><td class="n">19:36:14</td><td>0.033637</td><td><code>ink-detection/</code>, <code>spiral-fitting/</code></td></tr>
+        <tr><td class="n">19:37:05</td><td>0.140670</td><td><code>dinovol/</code> and the rest</td></tr>
+        </table></div>
+        <div class="foot">21 minutes, 3.69 Bobcoins for the whole session. Every call is logged in
+          <code>bob_sessions/01</code>, exported from <code>~/.bob/db/bob.db</code>.</div>""",
+        "Before compiling, Bob fanned out <b>four subagents</b> to survey villa's subprojects — "
+        "three of them started in the same second.")]))
 
     s.append((12.0, [(
         """<h2>And it found <em>the rule nobody wrote down.</em></h2>
@@ -226,7 +240,7 @@ def shots():
         "And here is one it gets wrong. <s>A miss.</s> The checker that would catch it "
         "was never built — the budget ran out at three.")]))
 
-    s.append((13.0, [(
+    s.append((12.0, [(
         """<h2>Measured on pull requests <em>we did not write.</em></h2>
         <div class="metric">
           <div><b style="color:var(--good)">5 / 5</b><small>hold-out recall</small></div>
