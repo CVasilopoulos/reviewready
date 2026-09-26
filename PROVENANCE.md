@@ -58,14 +58,43 @@ Bobcoins were exhausted by then. They are ordinary bug fixes, not new capability
 **Two planned checkers do not exist.** Interface-shape and subproject-router were cut for the
 same reason. The submission claims three checkers, not five.
 
-**There are no Bob session screenshots.** An earlier draft of this repository shipped six PNG
-files under `bob_sessions/` named as though each were the session consumption summary of one Bob
-task. They were not: all six were byte-identical copies of an unrelated screenshot, of a Codabench
-submission page from a different project. No screenshot of a Bob session was ever captured. The
-files were removed on 2026-09-26 and this paragraph replaces them, rather than quietly deleting
-them, because the earlier commit is public and a judge may have seen it.
+**There are no Bob session screenshots, but the sessions themselves are here.** An earlier draft
+of this repository shipped six PNG files under `bob_sessions/` named as though each were the session
+consumption summary of one Bob task. They were not: all six were byte-identical copies of an
+unrelated screenshot, of a Codabench submission page from a different project. No screenshot of a Bob
+session was ever captured. The files were removed on 2026-09-26 and this paragraph replaces them,
+rather than quietly deleting them, because the earlier commit is public and a judge may have seen it.
 
-What remains as evidence of Bob's authorship is the work itself: `contract.yml`, the three custom
-modes in `.bob/custom_modes.yaml` with their twelve rules files, and the three checker scripts.
-`bob_sessions/LEDGER.md` records the task list. The Bobcoin allocation for this account is
-exhausted, so the sessions cannot be re-run.
+In their place, `bob_sessions/` now holds the sessions exported from **IBM Bob's own local database**
+(`~/.bob/db/bob.db`) by `scripts/export_bob_sessions.py`. That is the same store the IDE's summary
+panel reads. Each file carries the task id, the exact prompt, the per-session Bobcoin spend and
+context-window breakdown, and every tool call Bob made with its timestamp and target — the content a
+screenshot would have shown, in a form a judge can check rather than squint at.
+
+## What the database says, checked against the claims above
+
+| | |
+|---|---|
+| Sessions with a non-zero cost | **4** |
+| Bobcoins, top-level tasks | 39.2409 |
+| Bobcoins, subagents | 0.5508 |
+| **Total** | **39.7917 of an allocation of 40** — the IDE reports 0% remaining |
+
+- **`contract.yml` was written by Bob**, in session `01-init-project-context`, in 94 logged edits
+  between 19:44 and 19:51 on 2026-09-25. This one is corroborated twice: by that session's tool-call
+  table and by Bob's own `attribution_logs` table, reproduced in `bob_sessions/ATTRIBUTION.md`.
+- **Session 01 spawned four subagents in parallel** to survey villa's subprojects. They are listed
+  with their individual costs at the foot of that session's file.
+- **The three checker scripts, `custom_modes.yaml` and all twelve `.bob/rules-*/` files were written
+  by Bob**, across sessions `02` and `03`. Session 02 is titled "build the first checker" but produced
+  two of them, which is why the next session is titled "the third". Bob's attribution log does not
+  cover these, because it only records edits inside the git repository it had open at the time
+  (`demo/villa`) and the gate pack was not yet a repository; the tool-call tables are the record.
+- **Bob found and fixed its own bugs.** The closing message of session 03 contains Bob's table of the
+  three defects it was warned about and how each was avoided. It is quoted in that file.
+
+## Still written outside Bob
+
+Unchanged from the correction above: the corpus runner, `reports/SUMMARY.md`, the three post-budget
+checker fixes, the demo page, the slides, the video and this file. Two planned checkers —
+interface-shape and subproject-router — do not exist. The submission claims three, not five.

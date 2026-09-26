@@ -1,20 +1,26 @@
 # Bob task ledger
 
-One row per Bob task. Fill it as you go — reconstructing this on Sunday is misery, and the Bobcoin
-column is the early-warning system for the one resource that cannot be topped up.
+Generated from IBM Bob's own local database by `scripts/export_bob_sessions.py`.
+Every number here is Bob's, not ours.
 
-Starting balance: `____` Bobcoins (record at sign-in, before task 00).
+| # | task | started | duration | Bobcoins | tool calls | subagents |
+|---|---|---|---|---|---|---|
+| 00 | [00-smoke-test](00-smoke-test.md) | 2026-09-25 19:21:34 | 1 min | 0.0281 | 0 | 0 |
+| 01 | [01-init-project-context](01-init-project-context.md) | 2026-09-25 19:32:18 | 21 min | 3.6915 | 49 | 4 |
+| 02 | [02-prior-art-and-contract-checkers](02-prior-art-and-contract-checkers.md) | 2026-09-25 23:38:10 | 319 min | 17.9104 | 112 | 0 |
+| 03 | [03-evidence-verifier](03-evidence-verifier.md) | 2026-09-26 08:33:15 | 159 min | 17.6108 | 103 | 0 |
 
-| # | Task | Started | Mode | Workspace | Balance after | Screenshot | Export | Notes |
-|---|---|---|---|---|---|---|---|---|
-| 00 | smoke test | | | demo/villa | | ☐ | ☐ | |
-| 01 | compile contract | | Plan→Agent | demo/villa | | ☐ | ☐ | |
-| 02 | prior-art scout | | Plan→Agent | gate | | ☐ | ☐ | |
-| 03 | contract compliance | | Agent | gate | | ☐ | ☐ | |
-| 04 | evidence verifier | | Agent | gate | | ☐ | ☐ | |
-| 05 | interface shape | | Agent | gate | | ☐ | ☐ | |
-| 06 | subproject router | | Agent | gate | | ☐ | ☐ | |
-| 07 | parallel corpus run | | Agent+subagents | gate | | ☐ | ☐ | screen-recorded? |
-| 08 | onboarding (optional) | | Agent | demo/villa | | ☐ | ☐ | |
+**Top-level tasks: 39.2409 Bobcoins.** Subagents a further 0.5508. **Total 39.7917 of an allocation of 40**, which the IDE reports as 0% remaining.
 
-**Reserve check:** at the end of Saturday, at least 15% of the allocation must remain.
+Two further sessions exist in the database with a cost of exactly 0 — an empty window opened
+on 2026-09-25 17:57 and another on 2026-09-26 12:20. They are not exported because nothing
+was run in them.
+
+`ATTRIBUTION.md` holds Bob's own per-file edit log (5 file/tool pairs).
+
+## What this ledger does not contain
+
+No screenshots. The session consumption figures above are read straight out of Bob's
+database, which is the same source the IDE's own summary panel displays. An earlier draft
+of this repository shipped six PNGs claiming to be those panels; they were copies of an
+unrelated screenshot and were removed. `PROVENANCE.md` records that in full.
