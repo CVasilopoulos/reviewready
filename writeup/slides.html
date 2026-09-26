@@ -1,0 +1,315 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>ReviewReady — slides</title>
+<style>
+  @page { size: 1280px 720px; margin: 0; }
+  :root{
+    --bg:#0b0f17; --bg2:#131a26; --fg:#e8eef9; --dim:#8d97a8; --faint:#6b7686;
+    --line:#232b39; --accent:#3ba3ff; --good:#2ecc71; --bad:#e2685f; --warn:#e0a33e;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#05070b}
+  body{font-family:"Inter",-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+       -webkit-font-smoothing:antialiased;color:var(--fg)}
+  .s{width:1280px;height:720px;background:linear-gradient(160deg,var(--bg),var(--bg2));
+     position:relative;overflow:hidden;page-break-after:always;break-after:page;
+     padding:56px 64px 62px;display:flex;flex-direction:column}
+  .s:last-child{page-break-after:auto;break-after:auto}
+  .kicker{font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);
+          margin-bottom:14px}
+  h2{font-size:38px;line-height:1.08;letter-spacing:-.02em;font-weight:650;margin-bottom:6px}
+  h2 em{font-style:normal;color:var(--accent)}
+  .lede{font-size:17.5px;color:var(--dim);margin-top:12px;max-width:940px;line-height:1.45}
+  .num{position:absolute;right:64px;bottom:30px;font-size:12px;color:#3c4453;
+       font-family:ui-monospace,SFMono-Regular,monospace}
+  .brand{position:absolute;left:64px;bottom:28px;font-size:11.5px;letter-spacing:.14em;
+         text-transform:uppercase;color:#3c4453}
+  .body{flex:1;display:flex;flex-direction:column;justify-content:center;gap:18px;margin-top:8px}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:34px;align-items:stretch}
+  .card{background:#0d121b;border:1px solid var(--line);border-radius:12px;padding:20px 22px}
+  .card h3{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);
+           font-weight:600;margin-bottom:12px}
+  code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  pre{font-size:12.5px;line-height:1.55;color:#a9b6c9;white-space:pre-wrap}
+  pre .k{color:var(--accent)} pre .c{color:#5c6675} pre .g{color:var(--good)}
+  pre .r{color:var(--bad)}
+  table{width:100%;border-collapse:collapse;font-size:16px}
+  th{text-align:left;font-size:11.5px;letter-spacing:.11em;text-transform:uppercase;
+     color:var(--faint);font-weight:600;padding:0 12px 9px 0;border-bottom:1px solid var(--line)}
+  td{padding:12px 12px 12px 0;border-bottom:1px solid #1a212c;color:#c3cddb}
+  td.n{font-family:ui-monospace,monospace;color:#8d97a8;width:78px}
+  tr:last-child td{border-bottom:none}
+  .pill{display:inline-block;font-size:12.5px;padding:3px 10px;border-radius:99px;
+        border:1px solid;white-space:nowrap}
+  .pill.bad{color:#d98077;border-color:#3d2326;background:#2a1a1c}
+  .pill.good{color:var(--good);border-color:#1e402c;background:#132318}
+  .pill.warn{color:var(--warn);border-color:#413318;background:#241d10}
+  .big{font-size:56px;font-weight:680;letter-spacing:-.03em;line-height:1}
+  .big span{color:var(--accent)}
+  .quote{border-left:3px solid #2a3442;padding-left:16px;color:var(--dim);font-size:15.5px;
+         line-height:1.5;font-style:italic}
+  .quote b{color:#b9c4d4;font-style:normal;font-weight:500}
+  .src{font-size:12px;color:#4e5768;margin-top:8px;font-family:ui-monospace,monospace}
+  .flow{display:flex;align-items:stretch;gap:14px}
+  .node{flex:1;background:#0d121b;border:1px solid var(--line);border-radius:11px;padding:15px 16px}
+  .node.acc{border-color:#1d3a55;background:#0c1622}
+  .node h4{font-size:14.5px;margin-bottom:6px;font-weight:600}
+  .node p{font-size:12.5px;color:var(--dim);line-height:1.45}
+  .node .tools{margin-top:9px;font-size:11px;font-family:ui-monospace,monospace;color:#4e5768}
+  .arrow{align-self:center;color:#3c4453;font-size:19px}
+  .stack{display:flex;flex-direction:column;gap:10px;flex:1}
+  ul{list-style:none;display:flex;flex-direction:column;gap:11px}
+  li{font-size:16px;color:#c3cddb;line-height:1.45;padding-left:20px;position:relative}
+  li:before{content:"";position:absolute;left:0;top:9px;width:6px;height:6px;border-radius:50%;
+            background:var(--accent);opacity:.75}
+  .foot{font-size:13px;color:var(--faint);margin-top:4px;line-height:1.45}
+  .metric{display:flex;gap:44px;margin:6px 0 2px}
+  .metric div b{display:block;font-size:44px;letter-spacing:-.02em;line-height:1.05}
+  .metric div small{font-size:12.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--faint)}
+  .title-wrap{flex:1;display:flex;flex-direction:column;justify-content:center;gap:22px}
+  h1{font-size:60px;line-height:1.05;letter-spacing:-.03em;font-weight:680;max-width:1000px}
+  h1 span{color:var(--accent)}
+  .rule{height:1px;background:var(--line);margin:4px 0}
+  .tag{font-size:13px;color:var(--dim)}
+  .tag b{color:var(--fg);font-weight:600}
+</style>
+
+<section class="s">
+  <div class="title-wrap">
+    <div class="kicker">IBM Bob 2.0 Hackathon · September 2026</div>
+    <h1>Your repo's contribution rules,<br><span>compiled into an agentic gate.</span></h1>
+    <div class="lede" style="font-size:20px;max-width:900px">
+      The deliverable is Bob configuration — a contract Bob compiled from the repository's own documents,
+      three custom modes, twelve rules files — and the deterministic checkers those modes drive.
+    </div>
+    <div class="rule" style="max-width:900px"></div>
+    <div class="tag">Target repository <b>ScrollPrize/villa</b> · evaluated on ten real pull requests · <b>github.com/CVasilopoulos/reviewready</b></div>
+  </div>
+  <div class="brand">ReviewReady</div><div class="num">1 / 8</div>
+</section>
+
+<section class="s">
+  <div class="kicker">The problem, in one repository</div>
+  <h2>Four working fixes. <em>Sixty-one days open.</em> Nobody read them.</h2>
+  <div class="body">
+    <table>
+      <tr><th>PR</th><th>What it fixed</th><th>Open for</th><th>Outcome</th></tr>
+      <tr><td class="n">#1391</td><td>vc_obj2tifxyz TIFXYZ scale semantics</td><td>17 days</td><td><span class="pill bad">closed unreviewed</span></td></tr>
+      <tr><td class="n">#1412</td><td>test runner: abort the test slot</td><td>14 days</td><td><span class="pill bad">closed unreviewed</span></td></tr>
+      <tr><td class="n">#1630</td><td>fail instead of writing sentinels</td><td>16 days</td><td><span class="pill bad">closed unreviewed</span></td></tr>
+      <tr><td class="n">#1724</td><td>tifxyz_label_transfer: close memory maps</td><td>14 days</td><td><span class="pill bad">closed unreviewed</span></td></tr>
+    </table>
+    <div class="quote" style="margin-top:6px">
+      <b>“reviewing PRs takes a significant amount of time away from the goal of unrolling the scrolls”</b>
+      <div class="src">ScrollPrize/villa · CONTRIBUTING.md, AI Guidelines</div>
+    </div>
+    <div class="foot">Two of the four were later fixed again, by other people, from scratch. The rules that would have
+      saved all of this are already written down — in prose, where nothing enforces them.</div>
+  </div>
+  <div class="brand">ReviewReady</div><div class="num">2 / 8</div>
+</section>
+
+<section class="s">
+  <div class="kicker">Why this is not a CI script</div>
+  <h2>The repo already runs two gates. <em>One counts days. One counts files.</em></h2>
+  <div class="body">
+    <div class="cols">
+      <div class="card">
+        <h3>pr-time-limits.yml</h3>
+        <pre><span class="c">inactive_cutoff=$(date -u -d</span> <span class="k">'14 days ago'</span> <span class="c">+%s)</span>
+<span class="c">age_cutoff=$(date -u -d</span> <span class="k">'28 days ago'</span> <span class="c">+%s)</span>
+  ...
+  <span class="r">gh pr close "$number"</span></pre>
+        <div class="foot" style="margin-top:12px">Fires on four of our ten. Every time by <b style="color:#d98077">closing a working
+          fix nobody read</b>, telling its author nothing.</div>
+      </div>
+      <div class="card">
+        <h3>large-pr-review-gate.yml</h3>
+        <pre><span class="k">LARGE_PR_FILE_THRESHOLD</span>: <span class="k">"20"</span>
+<span class="c">// block large PRs unless approved</span></pre>
+        <div class="foot" style="margin-top:12px">Fires on none of them. No pull request in the corpus touches
+          twenty files.</div>
+      </div>
+    </div>
+    <div class="quote" style="margin-top:8px">
+      The three questions that actually decide a pull request's fate — <b>has someone already fixed this?</b>
+      <b>does the body satisfy the written rules?</b> <b>is the proof really a proof?</b> — are reading problems,
+      not counting problems. That is the gap an agent fills and a workflow cannot.
+    </div>
+  </div>
+  <div class="brand">ReviewReady</div><div class="num">3 / 8</div>
+</section>
+
+<section class="s">
+  <div class="kicker">Step one — Bob reads the rulebook</div>
+  <h2>Prose in, <em>executable contract out.</em></h2>
+  <div class="body">
+    <div class="cols" style="grid-template-columns:1fr 1.05fr">
+      <div class="card">
+        <h3>CONTRIBUTING.md — what a human wrote</h3>
+        <div class="quote" style="border-color:#2a3442;font-size:14.5px">
+          “Any bugfix PR must be accompanied by a screenshot of the error … and the script/tool running
+          without error afterward”
+        </div>
+        <div class="src">line 19, one of five bullets</div>
+      </div>
+      <div class="card">
+        <h3>contract.yml — what Bob compiled</h3>
+        <pre>- <span class="k">id</span>: bugfix-error-screenshot
+  <span class="k">source</span>: CONTRIBUTING.md:19
+  <span class="k">check</span>: (a) a screenshot or terminal block
+    showing the error, <span class="g">and</span> (b) one showing
+    the tool running without error after
+  <span class="k">severity</span>: blocker</pre>
+      </div>
+    </div>
+    <div class="card" style="border-color:#1d3a55;background:#0c1622">
+      <h3 style="color:#5e9cd1">The rule nobody wrote down — Bob found the hole</h3>
+      <div style="font-size:15.5px;line-height:1.5;color:#c3cddb">
+        villa has six rules for LLM-assisted PRs and <b style="color:var(--accent)">no rule that you must disclose
+        using one</b>. Without disclosure all six are unenforceable. Bob emitted
+        <code style="color:var(--accent)">llm-disclosure</code> as <code>source: inferred</code>, carrying a
+        <code>rationale</code> field instead of a quote — so a maintainer can see it was derived, and reject it.
+      </div>
+    </div>
+    <div class="foot"><b>27 rules.</b> 25 quote a source line. 2 are marked inferred. Nothing is hard-coded in a checker.</div>
+  </div>
+  <div class="brand">ReviewReady</div><div class="num">4 / 8</div>
+</section>
+
+<section class="s">
+  <div class="kicker">Step two — the contract runs as Bob</div>
+  <h2>Three custom modes. <em>Read, execute, todo — nothing else.</em></h2>
+  <div class="body">
+    <div class="flow">
+      <div class="node acc" style="flex:.72">
+        <h4>contract.yml</h4>
+        <p>27 rules, each with source, check, severity and failure message. The single source of truth.</p>
+        <div class="tools">compiled by Bob, task 02</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="stack" style="flex:2">
+        <div class="node"><h4>Prior Art Reviewer</h4>
+          <p>Has someone already fixed this? Open and closed PRs, referenced issues, merged commits.</p>
+          <div class="tools">groups: read · execute · todo</div></div>
+        <div class="node"><h4>Contract Compliance</h4>
+          <p>Iterates every rule. Absent vs blank vs placeholder. A ticked checkbox is never “satisfied”.</p>
+          <div class="tools">groups: read · execute · todo</div></div>
+        <div class="node"><h4>Evidence Verifier</h4>
+          <p>Two distinct named commits, symmetric flags, real scroll data, artefact attached.</p>
+          <div class="tools">groups: read · execute · todo</div></div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="node acc" style="flex:.72">
+        <h4>One verdict</h4>
+        <p><span class="pill good" style="font-size:11.5px">READY</span> <span class="pill warn" style="font-size:11.5px">REVISE</span> <span class="pill bad" style="font-size:11.5px">BLOCK</span></p>
+        <p style="margin-top:9px">Findings in one JSON schema, each naming the rule and the line it came from.</p>
+      </div>
+    </div>
+    <div class="foot">No mode may write, edit or merge. Each loads four rules files before touching anything — role,
+      protocol, output schema, limits. <b>Five modes were planned; three exist</b> — the Bobcoin allocation
+      ran out after the third.</div>
+  </div>
+  <div class="brand">ReviewReady</div><div class="num">5 / 8</div>
+</section>
+
+<section class="s">
+  <div class="kicker">The one it gets wrong</div>
+  <h2>#1797 — <em>the gate read the rulebook. The maintainer read the design.</em></h2>
+  <div class="body">
+    <div class="cols">
+      <div class="card">
+        <h3>What ReviewReady said</h3>
+        <div style="font-size:15.5px;color:#c3cddb;line-height:1.5">
+          <span class="pill warn">REVISE</span><br><br>
+          <code style="color:var(--accent)">llm-concise-description</code> — description too long.<br>
+          <code style="color:var(--accent)">llm-human-review</code> — no statement of having read the diff.
+        </div>
+      </div>
+      <div class="card" style="border-color:#3d2326">
+        <h3 style="color:#d98077">Why it was actually closed</h3>
+        <div class="quote" style="border-color:#4a2c2f;font-size:15px">
+          “Remote rendering should either take a remote path … or a local volume -v.
+          <b style="color:#e8a49b">I see no good reason to add this mixture?</b>”
+          <div class="src" style="color:#6b5250">maintainer, 2026-09-22 · PR closed</div>
+        </div>
+      </div>
+    </div>
+    <div class="quote" style="margin-top:4px">
+      Nothing in <code>CONTRIBUTING.md</code> says “your flags must compose into a coherent interface”, so no
+      rule in the contract can. This is the fourth checker — <b>interface shape</b> — and it does not exist:
+      the budget ran out at three. <b>We report it as a miss</b> because it marks exactly where a
+      compiled contract stops and a human reviewer begins.
+    </div>
+  </div>
+  <div class="brand">ReviewReady</div><div class="num">6 / 8</div>
+</section>
+
+<section class="s">
+  <div class="kicker">Measured, on pull requests we did not write</div>
+  <h2>Five of five caught. <em>Zero good ones blocked.</em></h2>
+  <div class="body">
+    <div class="metric">
+      <div><b style="color:var(--good)">5 / 5</b><small>hold-out recall</small></div>
+      <div><b style="color:var(--good)">0 / 2</b><small>hold-out false blocks</small></div>
+      <div><b style="color:#c3cddb">6 / 7</b><small>whole corpus recall</small></div>
+      <div><b style="color:var(--warn)">1</b><small>false block, whole corpus</small></div>
+    </div>
+    <table style="font-size:14px">
+      <tr><th>PR</th><th>Gate's top reason</th><th>What really happened</th><th>Agree</th><th>Incumbent CI</th></tr>
+      <tr><td class="n">#1391</td><td>real-scroll-data-origin</td><td>auto-closed at 17d, 0/6 template fields</td><td><span class="pill good">yes</span></td><td>closed it</td></tr>
+      <tr><td class="n">#1683</td><td>prior-art/closed-pr-same-issue</td><td>duplicate of #1391, closed by author</td><td><span class="pill good">yes</span></td><td>nothing</td></tr>
+      <tr><td class="n">#1794</td><td>prior-art/closed-pr-same-issue</td><td>superseded eight minutes later</td><td><span class="pill good">yes</span></td><td>nothing</td></tr>
+      <tr><td class="n">#1724</td><td>verification-checkbox <i>(major)</i></td><td>fully compliant — auto-closed at 15d unread</td><td><span class="pill good">yes</span></td><td>closed it</td></tr>
+      <tr><td class="n">#1797</td><td>llm-concise-description</td><td>closed on interface design</td><td><span class="pill bad">miss</span></td><td>nothing</td></tr>
+      <tr><td class="n">#1798</td><td>evidence/no-before-commit</td><td>clean PR — <b>our false positive</b></td><td><span class="pill bad">no</span></td><td>nothing</td></tr>
+    </table>
+    <div class="foot"><b>Neither incumbent gate catches either duplicate.</b> Both duplicates were written because the
+      earlier fix had been closed and was invisible. #1798 fails because its commit hash sits 800 characters from the
+      nearest before/after label; widening the window further would be fitting the checker to this corpus, so it is
+      left failing. <b>Tuned on our own PRs, evaluated on other people's. Every row is a public PR you can open.</b>
+      Verdicts here come from running the three checker scripts over the cached corpus; the Bob modes drive those
+      same scripts.</div>
+  </div>
+  <div class="brand">ReviewReady</div><div class="num">7 / 8</div>
+</section>
+
+<section class="s">
+  <div class="kicker">What ships</div>
+  <h2>A folder you drop into any repository. <em>Then one prompt re-derives it.</em></h2>
+  <div class="body">
+    <div class="cols" style="grid-template-columns:1.1fr .9fr">
+      <div class="card">
+        <h3>The gate pack</h3>
+        <pre>.bob/custom_modes.yaml   <span class="c">three modes, minimal tool grants</span>
+.bob/rules-&lt;slug&gt;/       <span class="c">twelve rules files</span>
+contract.yml             <span class="c">27 rules, each with its source line</span>
+scripts/check_*.py       <span class="c">the script each mode drives</span>
+schemas/finding.json     <span class="c">one finding format</span>
+reports/                 <span class="c">ten PRs, scored, with SUMMARY.md</span></pre>
+      </div>
+      <div class="stack">
+        <ul>
+          <li>Nothing is villa-specific except <code>contract.yml</code> — and Bob wrote that by reading villa's own documents.</li>
+          <li>Point the same prompt at another repo's <code>CONTRIBUTING.md</code> and PR template, get that repo's contract.</li>
+          <li>Runs before you open the pull request, not after fourteen silent days. The three checkers take
+            under a second on a cached PR; prior-art costs a handful of <code>gh</code> calls.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="rule"></div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-end">
+      <div>
+        <div class="kicker" style="margin-bottom:6px">Repository · MIT</div>
+        <div style="font-size:23px;font-weight:600">github.com/CVasilopoulos/reviewready</div>
+        <div class="foot" style="margin-top:8px">Built with IBM Bob 2.0. <code>PROVENANCE.md</code> states, file by file,
+          what Bob produced and what it did not — including the two checkers we never built.</div>
+      </div>
+      <div style="text-align:right">
+        <div class="kicker" style="margin-bottom:6px">Disclosure</div>
+        <div style="font-size:14px;color:var(--dim);max-width:280px;line-height:1.5">AI-assisted, human-directed.</div>
+      </div>
+    </div>
+  </div>
+  <div class="brand">ReviewReady</div><div class="num">8 / 8</div>
+</section>
