@@ -1,4 +1,33 @@
-# lablab submission fields — paste-ready
+# lablab submission fields
+
+## STATUS: THE FORM IS FILLED AND SAVED AT 100% (2026-09-27 02:39 EEST)
+
+All three wizard steps are complete at
+https://lablab.ai/ai-hackathons/ibm-bob-2-hackathon/reviewready/submission
+It reads "Step 3 of 3 · 100% · Last saved at 2:39:55 AM". **The only remaining action is the
+Submit button**, left deliberately for Christos. There is no terms or declaration checkbox.
+
+What went in, step by step:
+
+| Step | Field | Value |
+|---|---|---|
+| 1 | Title (max 50) | `ReviewReady — your repo's rules as IBM Bob modes` (48) |
+| 1 | Short description (50-255) | as below (248) |
+| 1 | Long description (500-4000) | `field-long-description.md` (3,955) |
+| 1 | IBM Bob Usage Statement (500-4000) | `field-bob-usage.md` (3,819) |
+| 1 | Categories | Developer Tools, Productivity |
+| 1 | Technologies Used | Ibm — the list has no "IBM Bob"; Granite and watsonx were NOT picked, we did not use them |
+| 2 | Cover image | `assets/cover.png`, full frame (the first crop cut the edges and was redone) |
+| 2 | Video | `writeup/reviewready.mp4` — **a file upload, not a URL** |
+| 2 | Slides | `writeup/slides.pdf` |
+| 3 | GitHub repository | https://github.com/CVasilopoulos/reviewready |
+| 3 | Demo platform | Other (dropdown offers only Streamlit / Replit / Vercel / native.builder / Other) |
+| 3 | Demo URL | https://cvasilopoulos.github.io/reviewready/ |
+| 3 | Additional information | 1,649 chars: no session screenshots exist, the database export replaces them |
+
+---
+
+# Original notes
 
 Fill the `<<...>>` placeholders at hour ~22 from the real numbers. Everything else is final text.
 Submit at hour 23 even if numbers are provisional; edit afterwards.
