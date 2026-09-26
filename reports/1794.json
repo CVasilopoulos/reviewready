@@ -1,0 +1,592 @@
+{
+ "pr": 1794,
+ "title": "vc_obj2tifxyz: fail instead of writing an empty tifxyz when no grid point rasterizes",
+ "author": "nerln",
+ "state": "CLOSED",
+ "opened": "2026-09-15",
+ "verdict": "BLOCK",
+ "findings": [
+  {
+   "checker": "prior-art",
+   "severity": "blocker",
+   "rule": {
+    "id": "prior-art/closed-pr-same-issue",
+    "source": "corpus/1630/meta.json",
+    "quote": "vc_obj2tifxyz: fail instead of writing an all-sentinel tifxyz for normalized UVs"
+   },
+   "evidence": [
+    {
+     "what": "PR #1630 references the same issue(s): #1320",
+     "where": "corpus/1630/meta.json",
+     "output": "closingIssuesReferences: [1320]"
+    },
+    {
+     "what": "File overlap with PR #1630",
+     "where": "corpus/1630/diff.patch vs corpus/1794/diff.patch",
+     "output": "shared files: volume-cartographer/apps/src/vc_obj2tifxyz.cpp"
+    },
+    {
+     "what": "PR #1630 state and closure",
+     "where": "corpus/1630/meta.json",
+     "output": "number=1630 author=AnayGarodia state=CLOSED mergedAt=None closedAt=2026-09-13T07:16:19Z closer=bot title='vc_obj2tifxyz: fail instead of writing an all-sentinel tifxyz for normalized UVs'"
+    }
+   ],
+   "suggested_fix": "PR #1630 by @AnayGarodia was closed (bot) without merge. Review it and either rebase on top or explain the difference.",
+   "confidence": 0.85
+  },
+  {
+   "checker": "prior-art",
+   "severity": "blocker",
+   "rule": {
+    "id": "prior-art/open-pr-same-issue",
+    "source": "corpus/1781/meta.json",
+    "quote": "vc_obj2tifxyz: write scale as cells per voxel measured from the grid, fail on an empty grid"
+   },
+   "evidence": [
+    {
+     "what": "PR #1781 references the same issue(s): #1320",
+     "where": "corpus/1781/meta.json",
+     "output": "closingIssuesReferences: [1320]"
+    },
+    {
+     "what": "File overlap with PR #1781",
+     "where": "corpus/1781/diff.patch vs corpus/1794/diff.patch",
+     "output": "shared files: volume-cartographer/apps/src/vc_obj2tifxyz.cpp"
+    },
+    {
+     "what": "PR #1781 state and closure",
+     "where": "corpus/1781/meta.json",
+     "output": "number=1781 author=CVasilopoulos state=OPEN mergedAt=None closedAt=None closer=unknown title='vc_obj2tifxyz: write scale as cells per voxel measured from the grid, fail on an empty grid'"
+    }
+   ],
+   "suggested_fix": "An open PR #1781 by @CVasilopoulos already addresses the same change. Coordinate or close this PR.",
+   "confidence": 0.85
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "nit",
+   "rule": {
+    "id": "real-scroll-data-origin/pass",
+    "source": "CONTRIBUTING.md:17-18",
+    "quote": "PRs for fixes or improvements must come as a result of you running the tool on real scroll data in persuit of one of the goals of this project. Given the experimental and constantly changing nature of this codebase we do not intend to support every script or line of code ever commited. We are only i"
+   },
+   "evidence": [
+    {
+     "what": "Body contains first-person account with named tool and real data artefact."
+    }
+   ],
+   "suggested_fix": "No action required.",
+   "confidence": 0.9
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "blocker",
+   "rule": {
+    "id": "bugfix-error-screenshot",
+    "source": "CONTRIBUTING.md:19",
+    "quote": "Any bugfix PR must be accompanied by a screenshot of the error (either terminal or within the tool), and the script/tool running without error afterward."
+   },
+   "evidence": [
+    {
+     "what": "Missing bugfix artefacts",
+     "output": "Missing: no artefact showing the error before this PR; no artefact showing success after this PR"
+    }
+   ],
+   "suggested_fix": "Attach two artefacts: (a) a screenshot or terminal output showing the error before your fix, and (b) a screenshot or terminal output showing the tool running without error after your fix.",
+   "confidence": 0.75
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "nit",
+   "rule": {
+    "id": "no-synthetic-data/pass",
+    "source": "CONTRIBUTING.md:20",
+    "quote": "Bugfixes or improvements must be run on real scroll data. Synthetic or toy examples are not accepted."
+   },
+   "evidence": [
+    {
+     "what": "Body references real Vesuvius scroll data with no synthetic-data signals in evidence sections."
+    }
+   ],
+   "suggested_fix": "No action required.",
+   "confidence": 0.9
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "blocker",
+   "rule": {
+    "id": "motivation-section",
+    "source": "CONTRIBUTING.md:21",
+    "quote": "PRs must contain a motivation section, detailing what it is you were attempting to do when this issue arose (ex: \"i was attempting to use `vc_grow_seg_from_seed` in this volume to do some ink exploration when this error popped up\")."
+   },
+   "evidence": [
+    {
+     "what": "Motivation section insufficient",
+     "output": "Missing: no first-person account"
+    }
+   ],
+   "suggested_fix": "Add a sentence explaining what scroll-data task you were working on when this issue arose, naming the specific tool or workflow step.",
+   "confidence": 0.78
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "nit",
+   "rule": {
+    "id": "before-after-comparison/pass",
+    "source": "CONTRIBUTING.md:22",
+    "quote": "Where applicable, images or videos must be provided comparing results against current methods (ie. ink detection, segmentation, etc)."
+   },
+   "evidence": [
+    {
+     "what": "PR does not modify a comparable pipeline directory; comparison not required."
+    }
+   ],
+   "suggested_fix": "No action required.",
+   "confidence": 0.85
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "blocker",
+   "rule": {
+    "id": "llm-human-trigger",
+    "source": "CONTRIBUTING.md:32",
+    "quote": "PRs for bugfixes or improvements must come as a result of a human interacting with the codebase in an attempt to work on the scroll data."
+   },
+   "evidence": [
+    {
+     "what": "No first-person scroll-data session motivating LLM use",
+     "output": "Body does not describe a personal scroll-data session that preceded the LLM involvement."
+    }
+   ],
+   "suggested_fix": "Describe the real scroll-data session you were personally conducting when you decided this change was needed; LLM involvement must be preceded by a human use-case on real scroll data.",
+   "confidence": 0.72
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "nit",
+   "rule": {
+    "id": "llm-human-commentary/pass",
+    "source": "CONTRIBUTING.md:33",
+    "quote": "Any LLM generated PR must be accompanied by human-written commentary explaining why this PR is relevant or useful."
+   },
+   "evidence": [
+    {
+     "what": "Human authorship score",
+     "output": "human_signals=2, llm_signals=0"
+    },
+    {
+     "what": "Reasoning",
+     "output": "HUMAN: first-person action verb \u2014 e.g. \"under my direction; I built it and ran the reproduction above local\"\nHUMAN: specific named scroll/dataset \u2014 e.g. \"etry of a published PHerc0125 segment (`tifxyz_to_obj_normuv.py`,\""
+    }
+   ],
+   "suggested_fix": "No action required.",
+   "confidence": 0.75
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "nit",
+   "rule": {
+    "id": "llm-concise-description/pass",
+    "source": "CONTRIBUTING.md:34",
+    "quote": "The description of what you propose to change and why should be as concise and jargon-free as possible."
+   },
+   "evidence": [
+    {
+     "what": "Description above ## Details is 246 words; concise and clear."
+    }
+   ],
+   "suggested_fix": "No action required.",
+   "confidence": 0.9
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "nit",
+   "rule": {
+    "id": "llm-real-scroll-validation/pass",
+    "source": "CONTRIBUTING.md:35",
+    "quote": "Usefulness of any change must be calculated on real scroll data. Synthetic or toy examples are not allowed."
+   },
+   "evidence": [
+    {
+     "what": "Proof and example reference real Vesuvius scroll data with no synthetic signals in the evidence sections."
+    }
+   ],
+   "suggested_fix": "No action required.",
+   "confidence": 0.82
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "major",
+   "rule": {
+    "id": "llm-human-review",
+    "source": "CONTRIBUTING.md:36",
+    "quote": "We expect that you have reviewed the code yourself for simplicity/accuracy."
+   },
+   "evidence": [
+    {
+     "what": "No explicit statement of having reviewed the generated diff",
+     "output": "Body does not contain a sentence confirming personal review of the LLM-generated code."
+    }
+   ],
+   "suggested_fix": "Add a statement confirming you personally read and verified the LLM-generated diff for correctness and simplicity.",
+   "confidence": 0.68
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "nit",
+   "rule": {
+    "id": "llm-no-fishing-expedition/pass",
+    "source": "CONTRIBUTING.md:37",
+    "quote": "We may close PRs which appear to be simple \"fishing expeditions\" for llms (ie. \"claude find bugs in this codebase\") unrelated to humans actually using the code in pursuit of our goals."
+   },
+   "evidence": [
+    {
+     "what": "Focused PR: 0 fishing-expedition signal(s) found (< 2 needed to flag). No signals."
+    }
+   ],
+   "suggested_fix": "No action required.",
+   "confidence": 0.9
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "major",
+   "rule": {
+    "id": "pr-template-structure",
+    "source": "inferred",
+    "quote": "When opening a pull request, please follow the pull request template. It asks for a concise explanation, one real example, and direct before/after evidence before any additional detail."
+   },
+   "evidence": [
+    {
+     "what": "Two or more template headings absent",
+     "output": "Missing headings: ['In one sentence', 'One real example', 'Before', 'After this PR', 'Proof', 'Why / where this is useful']"
+    }
+   ],
+   "suggested_fix": "Do not delete the PR template headings; fill in each section rather than replacing the template structure.",
+   "confidence": 0.95
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "major",
+   "rule": {
+    "id": "pr-one-sentence-summary/absent",
+    "source": ".github/pull_request_template.md:1",
+    "quote": "**In one sentence:** <!-- Explain what someone can do with this; don't list features. -->"
+   },
+   "evidence": [
+    {
+     "what": "Section heading \"In one sentence\" is absent from PR body.",
+     "output": "Heading not found anywhere in body."
+    }
+   ],
+   "suggested_fix": "Fill in \"In one sentence\" with a single sentence describing what a user can do with this PR \u2014 not a list of features.",
+   "confidence": 0.95
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "blocker",
+   "rule": {
+    "id": "pr-one-real-example/absent",
+    "source": ".github/pull_request_template.md:3",
+    "quote": "**One real example:** Starting with [real data/input], I [action], and it produced [result]."
+   },
+   "evidence": [
+    {
+     "what": "Section heading \"One real example\" is absent from PR body.",
+     "output": "Heading not found anywhere in body."
+    }
+   ],
+   "suggested_fix": "Complete \"One real example\" with your actual data, command, and result \u2014 replace every placeholder in brackets with real specifics.",
+   "confidence": 0.95
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "major",
+   "rule": {
+    "id": "pr-before-section/absent",
+    "source": ".github/pull_request_template.md:5",
+    "quote": "**Before:** <!-- What happened without this PR? -->"
+   },
+   "evidence": [
+    {
+     "what": "Section heading \"Before\" is absent from PR body.",
+     "output": "Heading not found anywhere in body."
+    }
+   ],
+   "suggested_fix": "Fill in the \"Before\" section describing what happened without this PR.",
+   "confidence": 0.95
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "major",
+   "rule": {
+    "id": "pr-after-section/absent",
+    "source": ".github/pull_request_template.md:7",
+    "quote": "**After this PR:** <!-- What happens now? -->"
+   },
+   "evidence": [
+    {
+     "what": "Section heading \"After this PR\" is absent from PR body.",
+     "output": "Heading not found anywhere in body."
+    }
+   ],
+   "suggested_fix": "Fill in \"After this PR\" describing the new behaviour.",
+   "confidence": 0.95
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "blocker",
+   "rule": {
+    "id": "pr-proof-attached/absent",
+    "source": ".github/pull_request_template.md:9",
+    "quote": "**Proof:** <!-- Attach the image, video, output, or benchmark. Use the same input/settings for comparisons and say what we should look at. -->"
+   },
+   "evidence": [
+    {
+     "what": "Section heading \"Proof\" is absent from PR body.",
+     "output": "Heading not found anywhere in body."
+    }
+   ],
+   "suggested_fix": "Attach real proof in the \"Proof\" section \u2014 an image, video, terminal output block, or benchmark table; a verbal description alone is not sufficient.",
+   "confidence": 0.95
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "major",
+   "rule": {
+    "id": "proof-same-input/no-focus-indicator",
+    "source": ".github/pull_request_template.md:9",
+    "quote": "Use the same input/settings for comparisons and say what we should look at."
+   },
+   "evidence": [
+    {
+     "what": "Proof does not clearly say what the reviewer should look at",
+     "output": ""
+    }
+   ],
+   "suggested_fix": "Your proof must use the same input and settings as your example, and must say what the reviewer should look at.",
+   "confidence": 0.65
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "major",
+   "rule": {
+    "id": "pr-usefulness-section/absent",
+    "source": ".github/pull_request_template.md:11",
+    "quote": "**Why / where this is useful:** <!-- Who would use this result, and what can they do next? -->"
+   },
+   "evidence": [
+    {
+     "what": "Section heading \"Why / where this is useful\" is absent from PR body.",
+     "output": "Heading not found anywhere in body."
+    }
+   ],
+   "suggested_fix": "Fill in \"Why / where this is useful\" naming who benefits and what they can do next.",
+   "confidence": 0.95
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "major",
+   "rule": {
+    "id": "pr-verification-checkbox/unverifiable-by-machine",
+    "source": ".github/pull_request_template.md:13",
+    "quote": "- [ ] I personally verified that the example and proof above were produced by this PR on the stated data."
+   },
+   "evidence": [
+    {
+     "what": "Checkbox state in raw Markdown",
+     "output": "absent"
+    },
+    {
+     "what": "Machine limitation",
+     "output": "A ticked checkbox does not prove the contributor ran the code. A human reviewer must confirm: (1) does the Before section describe something this diff would actually change? (2) does the After section describe a result that this diff would actually produce? (3) do the screenshots/output blocks match the diff's changes?"
+    }
+   ],
+   "suggested_fix": "Human reviewer: confirm the contributor personally ran this PR's code on the stated data and that the Before/After sections plausibly come from this diff.",
+   "confidence": 1.0
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "nit",
+   "rule": {
+    "id": "pr-inactivity-14-days/pass",
+    "source": ".github/workflows/pr-time-limits.yml:23,36-41",
+    "quote": "Closed automatically under the repository PR time limits because this PR has had no activity for 14 days."
+   },
+   "evidence": [
+    {
+     "what": "PR was updated -1 days ago (< 14-day limit)."
+    }
+   ],
+   "suggested_fix": "No action required.",
+   "confidence": 0.9
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "nit",
+   "rule": {
+    "id": "pr-age-28-days/pass",
+    "source": ".github/workflows/pr-time-limits.yml:24,42-47",
+    "quote": "Closed automatically under the repository PR time limits because this PR has been open for 28 days without being merged."
+   },
+   "evidence": [
+    {
+     "what": "PR is -1 days old (< 28-day limit or already caught by inactivity check)."
+    }
+   ],
+   "suggested_fix": "No action required.",
+   "confidence": 0.9
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "nit",
+   "rule": {
+    "id": "pr-keep-open-exemption/pass",
+    "source": ".github/workflows/pr-time-limits.yml:31",
+    "quote": "select([.labels[].name] | index(\"keep-open\") | not)"
+   },
+   "evidence": [
+    {
+     "what": "PR does not use the 'keep-open' label; rule is informational only."
+    }
+   ],
+   "suggested_fix": "No action required.",
+   "confidence": 0.9
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "nit",
+   "rule": {
+    "id": "large-pr-needs-approval/pass",
+    "source": ".github/workflows/large-pr-review-gate.yml:26-27,87-90",
+    "quote": "This PR changes ${changedFiles} files (> ${threshold}). Add at least 1 approving review to merge."
+   },
+   "evidence": [
+    {
+     "what": "PR changes 1 files (<= 20 threshold); large-PR review gate does not apply."
+    }
+   ],
+   "suggested_fix": "No action required.",
+   "confidence": 0.9
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "nit",
+   "rule": {
+    "id": "large-pr-draft-exempt/pass",
+    "source": ".github/workflows/large-pr-review-gate.yml:50-53",
+    "quote": "Draft PR detected \u2014 skipping gate."
+   },
+   "evidence": [
+    {
+     "what": "PR draft status: False. Gate applies if > 20 files."
+    }
+   ],
+   "suggested_fix": "No action required.",
+   "confidence": 0.9
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "blocker",
+   "rule": {
+    "id": "codeowners-review-required",
+    "source": ".github/CODEOWNERS:1-19",
+    "quote": "* @giorgioangel @pmh47"
+   },
+   "evidence": [
+    {
+     "what": "CODEOWNER approval missing",
+     "output": "Required: ['hendrikschilling']; approved by: []; missing: ['hendrikschilling']"
+    }
+   ],
+   "suggested_fix": "This PR modifies files owned by a designated reviewer who has not yet approved it; request a review from the appropriate CODEOWNER.",
+   "confidence": 0.9
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "nit",
+   "rule": {
+    "id": "llm-disclosure/pass",
+    "source": "inferred",
+    "quote": "However, because reviewing PRs takes a significant amount of time away from the goal of unrolling the scrolls, we have a few rules regarding llm assisted PRs."
+   },
+   "evidence": [
+    {
+     "what": "LLM use explicitly disclosed: \"h was prepared with Claude Code under my direction; I built it and\""
+    }
+   ],
+   "suggested_fix": "No action required.",
+   "confidence": 0.9
+  },
+  {
+   "checker": "evidence",
+   "severity": "blocker",
+   "rule": {
+    "id": "evidence/no-before-commit",
+    "source": "inferred"
+   },
+   "evidence": [
+    {
+     "what": "No before-state commit SHA found in body",
+     "where": "body.md",
+     "output": "Expected a backtick-quoted SHA near 'before', 'upstream', or 'built from upstream' in the Proof section."
+    }
+   ],
+   "suggested_fix": "Add the exact commit SHA used for the before-state run, e.g. \"before\" is `vc_obj2tifxyz` built from upstream `<sha>`.",
+   "confidence": 0.92
+  },
+  {
+   "checker": "evidence",
+   "severity": "blocker",
+   "rule": {
+    "id": "evidence/no-after-commit",
+    "source": "inferred"
+   },
+   "evidence": [
+    {
+     "what": "No after-state commit SHA found in body",
+     "where": "body.md",
+     "output": "Expected a backtick-quoted SHA near 'after' in the Proof section."
+    }
+   ],
+   "suggested_fix": "Add the exact commit SHA used for the after-state run, e.g. \"after\" is `<sha>`.",
+   "confidence": 0.92
+  },
+  {
+   "checker": "evidence",
+   "severity": "blocker",
+   "rule": {
+    "id": "evidence/synthetic-data",
+    "source": "CONTRIBUTING.md:20",
+    "quote": "Bugfixes or improvements must be run on real scroll data. Synthetic or toy examples are not accepted."
+   },
+   "evidence": [
+    {
+     "what": "No real scroll data found in One real example or Proof sections",
+     "where": "body.md (One real example + Proof sections)",
+     "output": "Neither section names a Vesuvius scroll, .volpkg path, segment ID, or published mesh/tifxyz file."
+    }
+   ],
+   "suggested_fix": "Demonstrate the fix on real Vesuvius scroll data. Name the scroll, segment, or dataset used.",
+   "confidence": 0.8
+  },
+  {
+   "checker": "evidence",
+   "severity": "major",
+   "rule": {
+    "id": "evidence/no-proof-artefact",
+    "source": "inferred"
+   },
+   "evidence": [
+    {
+     "what": "Proof section is absent or empty",
+     "where": "body.md",
+     "output": "No Proof section found in body."
+    }
+   ],
+   "suggested_fix": "Add a Proof section with an image, terminal output block, benchmark table, or video link.",
+   "confidence": 0.97
+  }
+ ],
+ "checker_errors": {},
+ "incumbent": []
+}

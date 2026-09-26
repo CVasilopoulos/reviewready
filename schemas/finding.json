@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ReviewReady finding",
+  "type": "object",
+  "required": ["checker", "severity", "rule", "evidence", "suggested_fix", "confidence"],
+  "additionalProperties": false,
+  "properties": {
+    "checker": {
+      "type": "string",
+      "enum": ["prior-art", "contract-compliance", "evidence", "interface-shape", "subproject-router"]
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["blocker", "major", "nit"],
+      "description": "blocker = a maintainer would close or reject on this alone"
+    },
+    "rule": {
+      "type": "object",
+      "required": ["id", "source"],
+      "properties": {
+        "id": { "type": "string", "description": "contract.yml rule id, or a slug for inferred rules" },
+        "source": { "type": "string", "description": "file path and line range the rule comes from, or 'inferred'" },
+        "quote": { "type": "string", "description": "verbatim sentence from the source document" }
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["what"],
+        "properties": {
+          "what": { "type": "string" },
+          "where": { "type": "string", "description": "file:line, PR number, or command run" },
+          "output": { "type": "string" }
+        }
+      }
+    },
+    "suggested_fix": { "type": "string", "description": "the smallest change that clears this finding" },
+    "confidence": {
+      "type": "number", "minimum": 0, "maximum": 1,
+      "description": "calibrated, not decorative. Predicting human taste should not score 0.95."
+    }
+  }
+}

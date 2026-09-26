@@ -1,0 +1,1 @@
+[{"date":"2026-08-11T01:06:11Z","message":"Fix vc_obj2tifxyz TIFXYZ scale semantics","sha":"eab2a5b98f787083832d7f2557addb620f3f997a"},{"date":"2026-08-12T18:25:48Z","message":"simplify vc_obj2tifxyz scale regression test","sha":"8f6b37f47c0d28bef936d5177fa4f166767e0d4d"}]

@@ -1,0 +1,426 @@
+diff --git a/lasagna/tifxyz_format.md b/lasagna/tifxyz_format.md
+index aabf2d673f..f87b35d326 100644
+--- a/lasagna/tifxyz_format.md
++++ b/lasagna/tifxyz_format.md
+@@ -30,7 +30,7 @@ Any other `*.tif` files are interpreted as additional channels (by filename stem
+ 	- `Y = y.tif[row, col]`
+ 	- `Z = z.tif[row, col]`
+ 
+-The grid is a *regular* 2D lattice in index space; physical spacing of the grid in “surface units” is given by `meta.json.scale`.
++The grid is a *regular* 2D lattice in index space; `meta.json.scale` gives its sampling density in grid cells per voxel (see §5.1).
+ 
+ ## 3. Data types (TIFF)
+ 
+@@ -108,15 +108,12 @@ Common fields produced by tools:
+ 
+ ### 5.1 `scale` meaning
+ 
+-`scale = [sx, sy]` describes the grid spacing in surface-parameter space.
+-
+-- Many tools interpret the parametric coordinate of a vertex `(row, col)` as `(u = col * sx, v = row * sy)`.
+-- Some operations may also use `1/sx` and `1/sy` as a “pixels-per-unit” scaling.
++`scale = [sx, sy]` is the sampling density of the grid: grid cells per voxel along each axis. It is a density, not a spacing: adjacent grid vertices are `1/sx` (resp. `1/sy`) voxels apart, and a grid of `cols x rows` cells spans `cols/sx x rows/sy` voxels (`QuadSurface::size()`). The tracer writes `0.05` for its 20-voxel step.
+ 
+ To stay compatible:
+ 
+ - Preserve `scale` when copying/transforming surfaces.
+-- If you resample the grid resolution, update `scale` consistently.
++- If you resample the grid resolution, update `scale` consistently: doubling the cell spacing halves `scale`.
+ 
+ ## 6. Writing rules (recommended)
+ 
+diff --git a/volume-cartographer/apps/src/vc_obj2tifxyz.cpp b/volume-cartographer/apps/src/vc_obj2tifxyz.cpp
+index daba7b9709..a274b5b43e 100644
+--- a/volume-cartographer/apps/src/vc_obj2tifxyz.cpp
++++ b/volume-cartographer/apps/src/vc_obj2tifxyz.cpp
+@@ -188,7 +188,7 @@ class ObjToTifxyzConverter {
+         const int gw_raw = std::max(2, static_cast<int>(std::ceil(uv_range[0] * stretch_factor)) + 1);
+         const int gh_raw = std::max(2, static_cast<int>(std::ceil(uv_range[1] * stretch_factor)) + 1);
+ 
+-        // Apply uniform decimation / capping to the resolution (NOT to the scale)
++        // Apply uniform decimation / capping to the resolution
+         const auto apply_decimation = [](int n, double d) {
+             if (d <= 1.0) return n;
+             // keep endpoints: 1 + floor((n-1)/d)
+@@ -224,29 +224,23 @@ class ObjToTifxyzConverter {
+             int gw_src = std::max(2, static_cast<int>(std::lround(uv_range[0] * src_scale[0])) + 1);
+             int gh_src = std::max(2, static_cast<int>(std::lround(uv_range[1] * src_scale[1])) + 1);
+             // Honor any further user decimation / pixel cap on top of source density.
+-            gw_src = apply_decimation(gw_src, decim);
+-            gh_src = apply_decimation(gh_src, decim);
+-            grid_size[0] = gw_src;
+-            grid_size[1] = gh_src;
+-            scale[0] = src_scale[0];
+-            scale[1] = src_scale[1];
++            const int gw_src_dec = apply_decimation(gw_src, decim);
++            const int gh_src_dec = apply_decimation(gh_src, decim);
++            grid_size[0] = gw_src_dec;
++            grid_size[1] = gh_src_dec;
++            // Adopt the source scale verbatim when undecimated; otherwise reduce
++            // it by the decimation actually applied so it describes this grid.
++            scale[0] = static_cast<float>(src_scale[0] * (gw_src_dec - 1) / double(gw_src - 1));
++            scale[1] = static_cast<float>(src_scale[1] * (gh_src_dec - 1) / double(gh_src - 1));
+             std::cout << "Source-scale mode: grid " << grid_size[0] << " x " << grid_size[1]
+                       << "  scale: " << scale[0] << ", " << scale[1]
+                       << "  (matched to input tifxyz)" << std::endl;
+         } else if (uv_is_metric) {
+-            // --- Preserve physical pixel size (scale) from the RAW grid ---
+-            // du_raw/dv_raw are UV units per pixel *before* decimation.
+-            const float du_raw = (gw_raw > 1) ? uv_range[0] / float(gw_raw - 1) : 0.f;
+-            const float dv_raw = (gh_raw > 1) ? uv_range[1] / float(gh_raw - 1) : 0.f;
+-            scale[0] = du_raw * uv_to_obj; // OBJ units per pixel (unchanged by decimation)
+-            scale[1] = dv_raw * uv_to_obj;
+-
+-            std::cout << "UV-metric mode: grid " << grid_size[0] << " x " << grid_size[1]
+-                      << "  scale(OBJ units): " << scale[0] << ", " << scale[1] << std::endl;
++            // `scale` is measured from the emitted grid in createQuadSurface().
++            std::cout << "UV-metric mode: grid " << grid_size[0] << " x " << grid_size[1] << std::endl;
+             if (decim > 1.0) {
+                 std::cout << "  (applied UV decimation ~" << decim << "x per axis; "
+-                          << "effective decim [" << eff_decim_x << ", " << eff_decim_y << "]; "
+-                          << "preserved per-pixel physical scale)\n";
++                          << "effective decim [" << eff_decim_x << ", " << eff_decim_y << "])\n";
+             }
+         } else {
+             // --- Legacy non-metric: measure from 3D on decimated grid, then compensate ---
+@@ -286,7 +280,7 @@ class ObjToTifxyzConverter {
+         }
+     }
+     
+-    QuadSurface* createQuadSurface(float mesh_units = 1.0f) {
++    QuadSurface* createQuadSurface() {
+         // Create points matrix initialized with invalid values
+         cv::Mat_<cv::Vec3f>* points = new cv::Mat_<cv::Vec3f>(grid_size[1], grid_size[0], cv::Vec3f(-1, -1, -1));
+ 
+@@ -313,7 +307,6 @@ class ObjToTifxyzConverter {
+         std::cout << "Valid grid points: " << valid_count << " / " << (grid_size[0] * grid_size[1]) 
+                   << " (" << (100.0f * valid_count / (grid_size[0] * grid_size[1])) << "%)" << std::endl;
+         
+-        // Scale is currently in OBJ units. Convert to micrometers now.
+         if (valid_count == 0) {
+             std::cerr << "Warning: no valid grid points were rasterized." << std::endl;
+         }
+@@ -321,19 +314,34 @@ class ObjToTifxyzConverter {
+         if (src_scale_mode) {
+             // Scale was adopted verbatim from the source tifxyz; do not rescale.
+             std::cout << "Scale (from source tifxyz): " << scale[0] << ", " << scale[1] << std::endl;
+-        } else if (uv_is_metric) {
+-            scale[0] *= mesh_units;
+-            scale[1] *= mesh_units;
+-            std::cout << "Scale from UV (micrometers): " << scale[0] << ", " << scale[1] << std::endl;
+         } else {
+-            // Measure from 3D to preserve anisotropy and noise-robustness (already compensated in determineGridDimensions)
+-            calculateScaleFromGrid(*points, mesh_units);
++            // tifxyz `scale` is grid cells per voxel: QuadSurface::size() is
++            // cols / scale and the tracer writes 0.05 for its 20-voxel step. So
++            // it has to describe the grid actually emitted, whatever stretch,
++            // --uv-downsample or --grid-cap produced it and whether the UVs
++            // were metric or normalized: measure that grid's mean 3D spacing
++            // per axis and invert it. The OBJ coordinates are voxel
++            // coordinates, so the mesh_units argument does not enter.
++            scale = cv::Vec2f(0.f, 0.f);
++            calculateScaleFromGrid(*points);
++            if (!(scale[0] > 0.f) || !(scale[1] > 0.f)) {
++                std::cerr << "Error: could not measure the grid spacing of the emitted surface; "
++                             "not writing a tifxyz with an invalid scale." << std::endl;
++                delete points;
++                return nullptr;
++            }
++            scale[0] = 1.f / scale[0];
++            scale[1] = 1.f / scale[1];
++            std::cout << "Scale (grid cells per voxel, measured from the emitted grid): "
++                      << scale[0] << ", " << scale[1] << std::endl;
+         }
+         
+         return new QuadSurface(points, scale);
+     }
+     
+-    void calculateScaleFromGrid(const cv::Mat_<cv::Vec3f>& points, float mesh_units = 1.0f) {
++    // Fills `scale` with the mean 3D distance between adjacent grid points
++    // along each axis (OBJ units), or leaves it untouched if none was measurable.
++    void calculateScaleFromGrid(const cv::Mat_<cv::Vec3f>& points) {
+         // Based on vc_segmentation_scales from Slicing.cpp
+         double sum_x = 0;
+         double sum_y = 0;
+@@ -380,16 +388,14 @@ class ObjToTifxyzConverter {
+         }
+         
+         if (count > 0 && sum_x > 0 && sum_y > 0) {
+-            // Scale is the average distance between points, adjusted by mesh units
+-            scale[0] = static_cast<float>((sum_x / count) * mesh_units);
+-            scale[1] = static_cast<float>((sum_y / count) * mesh_units);
++            // Mean distance between adjacent points
++            scale[0] = static_cast<float>(sum_x / count);
++            scale[1] = static_cast<float>(sum_y / count);
+         } else {
+-            // Fallback to UV-based scale if we couldn't calculate from grid
+-            std::cerr << "Warning: Could not calculate scale from grid, using UV-based fallback" << std::endl;
+-            // scale already set in determineGridDimensions
++            std::cerr << "Warning: Could not calculate scale from grid" << std::endl;
+         }
+-        
+-        std::cout << "Calculated scale factors from grid: " << scale[0] << ", " << scale[1] << " micrometers" << std::endl;
++
++        std::cout << "Mean grid spacing (OBJ units): " << scale[0] << ", " << scale[1] << std::endl;
+     }
+     
+ private:
+@@ -524,10 +530,10 @@ int main(int argc, char *argv[])
+         std::cout << std::endl;
+         std::cout << "Parameters:" << std::endl;
+         std::cout << "  stretch_factor: UV scaling factor (default: 1.0)" << std::endl;
+-        std::cout << "  mesh_units    : micrometers per OBJ unit (default: 1.0)" << std::endl;
++        std::cout << "  mesh_units    : micrometers per OBJ unit (default: 1.0; accepted for compatibility, not used)" << std::endl;
+         std::cout << "Flags:" << std::endl;
+         std::cout << "  --uv-metric         : UVs are metric (default; UV units == OBJ units unless --uv-to-obj is set)" << std::endl;
+-        std::cout << "  --uv-non-metric     : Revert to legacy behavior (measure scale from 3D mesh)" << std::endl;
++        std::cout << "  --uv-non-metric     : Legacy grid sizing from the mesh's measured 3D spacing" << std::endl;
+         std::cout << "  --uv-to-obj=<ratio> : OBJ units per 1 UV unit (default: 1.0). Only used with --uv-metric." << std::endl;
+         std::cout << "  --uv-downsample=<f> : Uniform UV decimation factor (>=1.0). Reduces grid by ~f^2." << std::endl;
+         std::cout << "  --grid-cap=<pixels> : Upper bound on total grid pixels. Implies extra decimation if needed." << std::endl;
+@@ -537,7 +543,7 @@ int main(int argc, char *argv[])
+         std::cout << "                        scale). If <dir>/approval.tif exists, it is resampled onto the new" << std::endl;
+         std::cout << "                        grid via the <input.obj>.griduv sidecar. Absent: legacy metric sizing." << std::endl;
+         std::cout << std::endl;
+-        std::cout << "Note: Scale factors are automatically calculated from the mesh grid structure." << std::endl;
++        std::cout << "Note: meta.json scale (grid cells per voxel) is measured from the emitted grid." << std::endl;
+         std::cout << "Examples:" << std::endl;
+         std::cout << "  " << argv[0] << " mesh.obj outdir                       (legacy behavior)" << std::endl;
+         std::cout << "  " << argv[0] << " mesh.obj outdir 800 1.0 --uv-metric  (UV is metric, OBJ units == UV units)" << std::endl;
+@@ -703,7 +709,7 @@ int main(int argc, char *argv[])
+     converter.determineGridDimensions(stretch_factor);
+     
+     // Create quad surface
+-    QuadSurface* surf = converter.createQuadSurface(mesh_units);
++    QuadSurface* surf = converter.createQuadSurface();
+     if (!surf) {
+         std::cerr << "Failed to create quad surface" << std::endl;
+         return EXIT_FAILURE;
+diff --git a/volume-cartographer/core/test/CMakeLists.txt b/volume-cartographer/core/test/CMakeLists.txt
+index a797df5c2a..946d88f3c8 100644
+--- a/volume-cartographer/core/test/CMakeLists.txt
++++ b/volume-cartographer/core/test/CMakeLists.txt
+@@ -865,6 +865,13 @@ if(TARGET vc_tifxyz_selfcross)
+     add_dependencies(test_tifxyz_selfcross_cli vc_tifxyz_selfcross)
+ endif()
+ 
++if(TARGET vc_obj2tifxyz)
++    vc_add_test(NAME test_obj2tifxyz_cli
++        LIBS doctest::doctest vc_core opencv_core opencv_imgcodecs
++        DEFS VC_OBJ2TIFXYZ_BIN="$<TARGET_FILE:vc_obj2tifxyz>")
++    add_dependencies(test_obj2tifxyz_cli vc_obj2tifxyz)
++endif()
++
+ vc_add_test(NAME test_fiber_intersections LIBS doctest::doctest vc_atlas)
+ 
+ vc_add_test(NAME test_remote_url)
+diff --git a/volume-cartographer/core/test/test_obj2tifxyz_cli.cpp b/volume-cartographer/core/test/test_obj2tifxyz_cli.cpp
+new file mode 100644
+index 0000000000..f129420149
+--- /dev/null
++++ b/volume-cartographer/core/test/test_obj2tifxyz_cli.cpp
+@@ -0,0 +1,204 @@
++// End-to-end tests for the vc_obj2tifxyz command line: the tifxyz `scale`
++// it writes must describe the grid it actually emitted (#1319). QuadSurface
++// reads scale as grid cells per voxel (size() == cols / scale), so the 3D
++// spacing of adjacent points in the written x/y/z.tif must equal 1 / scale
++// and the nominal size must stay the mesh's extent whatever stretch,
++// decimation or cap produced the grid, and whether the UVs were metric or
++// normalized. Before the fix, scale was the UV spacing of the undecimated
++// grid (a length, inverted, and blind to --uv-downsample / --grid-cap), so a
++// 20x-decimated surface rendered 20x too small and a stretched one 4x too
++// large.
++//
++// The binary path arrives from CMake as VC_OBJ2TIFXYZ_BIN. The fixture is a
++// flat mesh written into a fresh temp directory in the layout vc_tifxyz2obj
++// emits (v/vt/vn, f v/vt/vn), with UVs equal to the in-plane OBJ coordinates
++// or, for the normalized case, divided by the extent.
++
++#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
++#include "vc_test.hpp"
++
++#include "vc/core/util/QuadSurface.hpp"
++
++#include <opencv2/core/mat.hpp>
++#include <opencv2/imgcodecs.hpp>
++
++#include <cmath>
++#include <cstdlib>
++#include <filesystem>
++#include <fstream>
++#include <string>
++#include <vector>
++
++#ifdef _WIN32
++TEST_CASE("cli tests are POSIX-only") {}
++#else
++
++#include <sys/wait.h>
++#include <unistd.h>
++
++namespace fs = std::filesystem;
++
++namespace {
++
++// Mesh vertex spacing and vertex counts: a 40 x 30 quad grid of 20-unit
++// cells, i.e. UV extent 800 x 600 OBJ units (the geometry of a tracer
++// segment written through vc_tifxyz2obj).
++constexpr float kSpacing = 20.f;
++constexpr int kCols = 41;
++constexpr int kRows = 31;
++constexpr float kExtentU = kSpacing * (kCols - 1);
++constexpr float kExtentV = kSpacing * (kRows - 1);
++
++void write_obj(const fs::path& path, bool normalized_uv = false)
++{
++    std::ofstream obj(path);
++    for (int r = 0; r < kRows; ++r)
++        for (int c = 0; c < kCols; ++c) {
++            const float x = kSpacing * c, y = kSpacing * r;
++            const float u = normalized_uv ? x / kExtentU : x;
++            const float v = normalized_uv ? y / kExtentV : y;
++            obj << "v " << x << " " << y << " 100\n"
++                << "vt " << u << " " << v << "\n"
++                << "vn 0 0 1\n";
++        }
++    for (int r = 0; r + 1 < kRows; ++r)
++        for (int c = 0; c + 1 < kCols; ++c) {
++            const int a = r * kCols + c + 1, b = a + 1;
++            const int d = a + kCols, e = d + 1;
++            obj << "f " << a << "/" << a << "/" << a << " " << b << "/" << b << "/" << b
++                << " " << e << "/" << e << "/" << e << "\n";
++            obj << "f " << a << "/" << a << "/" << a << " " << e << "/" << e << "/" << e
++                << " " << d << "/" << d << "/" << d << "\n";
++        }
++    REQUIRE(obj.good());
++}
++
++// A tifxyz with the same geometry at the tracer's 1 cell / 20 units, for
++// --tifxyz-source mode.
++void write_source_tifxyz(const fs::path& dir)
++{
++    cv::Mat x(kRows, kCols, CV_32F), y(kRows, kCols, CV_32F), z(kRows, kCols, CV_32F, cv::Scalar(100.f));
++    for (int r = 0; r < kRows; ++r)
++        for (int c = 0; c < kCols; ++c) {
++            x.at<float>(r, c) = kSpacing * c;
++            y.at<float>(r, c) = kSpacing * r;
++        }
++    fs::create_directories(dir);
++    REQUIRE(cv::imwrite((dir / "x.tif").string(), x));
++    REQUIRE(cv::imwrite((dir / "y.tif").string(), y));
++    REQUIRE(cv::imwrite((dir / "z.tif").string(), z));
++    std::ofstream meta(dir / "meta.json");
++    meta << "{\"scale\": [0.05, 0.05], \"uuid\": \"cli-source\"}\n";
++    REQUIRE(meta.good());
++}
++
++// Single-quote every argument so paths containing spaces or shell
++// metacharacters cannot break the command or execute as syntax.
++std::string sh(const std::string& s)
++{
++    std::string q = "'";
++    for (char c : s)
++        if (c == '\'') q += "'\\''"; else q += c;
++    return q + "'";
++}
++
++int run_cli(const std::vector<std::string>& args)
++{
++    std::string cmd = sh(VC_OBJ2TIFXYZ_BIN);
++    for (const auto& a : args) cmd += " " + sh(a);
++    cmd += " >/dev/null 2>&1";
++    int rc = std::system(cmd.c_str());
++    REQUIRE(rc != -1);
++    return WIFEXITED(rc) ? WEXITSTATUS(rc) : -2;
++}
++
++struct TempDir {
++    fs::path path;
++    TempDir()
++    {
++        path = fs::temp_directory_path()
++             / ("vc_obj2tifxyz_cli_" + std::to_string(::getpid()));
++        fs::create_directories(path);
++    }
++    ~TempDir() { std::error_code ec; fs::remove_all(path, ec); }
++};
++
++// Convert with `extra` flags and check the written surface: the grid has the
++// expected column count, scale is cells per voxel of that grid (so the
++// nominal size stays the mesh extent), and the 3D spacing of adjacent grid
++// points read back from x/y/z.tif equals 1 / scale.
++void check_conversion(const TempDir& tmp, const std::string& name,
++                      const std::vector<std::string>& extra, int expect_cols)
++{
++    const fs::path obj = tmp.path / "mesh.obj";
++    const fs::path out = tmp.path / name;  // must not pre-exist
++    std::vector<std::string> args{obj.string(), out.string()};
++    args.insert(args.end(), extra.begin(), extra.end());
++    REQUIRE(run_cli(args) == 0);
++
++    auto surf = load_quad_from_tifxyz(out);
++    REQUIRE(surf);
++    const cv::Mat_<cv::Vec3f> pts = surf->rawPoints();
++    const cv::Vec2f scale = surf->scale();
++    INFO(name << ": grid " << pts.cols << "x" << pts.rows
++              << " scale " << scale[0] << "," << scale[1]);
++    CHECK(pts.cols == expect_cols);
++    CHECK(scale[0] == doctest::Approx((pts.cols - 1) / kExtentU).epsilon(1e-4));
++    CHECK(scale[1] == doctest::Approx((pts.rows - 1) / kExtentV).epsilon(1e-4));
++    // size() is cols / scale, so it counts cells rather than intervals and
++    // may exceed the UV extent by one cell; before the fix it was off by
++    // the whole decimation factor.
++    const cv::Size nominal = surf->size();
++    CHECK(std::abs(nominal.width - kExtentU) <= 1.0 / scale[0] + 0.5);
++    CHECK(std::abs(nominal.height - kExtentV) <= 1.0 / scale[1] + 0.5);
++
++    const int r = pts.rows / 2, c = pts.cols / 2;
++    const double du = cv::norm(pts(r, c + 1) - pts(r, c));
++    const double dv = cv::norm(pts(r + 1, c) - pts(r, c));
++    CHECK(du == doctest::Approx(1.0 / scale[0]).epsilon(1e-3));
++    CHECK(dv == doctest::Approx(1.0 / scale[1]).epsilon(1e-3));
++}
++
++}  // namespace
++
++TEST_CASE("metric mode: scale follows the emitted grid under decimation, "
++          "cap and stretch")
++{
++    TempDir tmp;
++    write_obj(tmp.path / "mesh.obj");
++
++    // 1 cell / OBJ unit: 801 columns, scale 1 (unchanged behaviour).
++    check_conversion(tmp, "plain", {}, 801);
++    // --uv-downsample=20 keeps the endpoints: 1 + 800/20 columns, scale 0.05.
++    check_conversion(tmp, "ds20", {"--uv-downsample=20"}, 41);
++    // --grid-cap forces ceil(sqrt(801*601/50000)) = 4x decimation.
++    check_conversion(tmp, "cap", {"--grid-cap=50000"}, 201);
++    // stretch_factor 2: 2 cells / OBJ unit, scale 2.
++    check_conversion(tmp, "stretch2", {"2"}, 1601);
++}
++
++TEST_CASE("normalized UVs: scale comes from the emitted grid's 3D spacing")
++{
++    TempDir tmp;
++    write_obj(tmp.path / "mesh.obj", /*normalized_uv=*/true);
++    // stretch 40 on a unit UV square: a 41x41 grid over 800x600 voxels, so
++    // an anisotropic scale of 0.05 x 0.0667 (#1319 wrote 1 / stretch).
++    check_conversion(tmp, "norm40", {"40"}, 41);
++}
++
++TEST_CASE("source-scale mode: scale is the source's, reduced by any extra "
++          "decimation")
++{
++    TempDir tmp;
++    write_obj(tmp.path / "mesh.obj");
++    const fs::path src = tmp.path / "source.tifxyz";
++    write_source_tifxyz(src);
++
++    // Sized to the source density: 41 columns at the source's 0.05.
++    check_conversion(tmp, "src", {"--tifxyz-source=" + src.string()}, 41);
++    // A further 4x decimation: 11 columns, scale 0.05 * 10/40.
++    check_conversion(tmp, "src_ds4",
++                     {"--tifxyz-source=" + src.string(), "--uv-downsample=4"}, 11);
++}
++
++#endif  // _WIN32

@@ -1,0 +1,335 @@
+diff --git a/vesuvius/src/vesuvius/tifxyz_label_transfer/io.py b/vesuvius/src/vesuvius/tifxyz_label_transfer/io.py
+index bcafe9bdfb..0e98d739ec 100644
+--- a/vesuvius/src/vesuvius/tifxyz_label_transfer/io.py
++++ b/vesuvius/src/vesuvius/tifxyz_label_transfer/io.py
+@@ -19,11 +19,41 @@
+ from .core import Surface
+ 
+ 
++def close_memmap(array: object) -> None:
++    """Release the file mapping behind ``array``, if it has one.
++
++    POSIX lets a mapped file be unlinked or replaced while the mapping is
++    live; Windows refuses with a sharing violation. Any mapping this module
++    opens therefore needs an explicit end of life rather than relying on the
++    owner happening to hold the last reference to the array.
++
++    Pass the array that owns the mapping. NumPy propagates ``_mmap`` to
++    views, so closing through a view would close the parent out from under
++    everyone else holding it; a view is rejected rather than honoured.
++    """
++    if isinstance(getattr(array, "base", None), np.memmap):
++        raise ValueError("close_memmap needs the owning array, not a view of it")
++    mapping = getattr(array, "_mmap", None)
++    if mapping is not None and not mapping.closed:
++        mapping.close()
++
++
+ def _read_tiff(path: Path) -> NDArray:
+-    try:
+-        return tifffile.memmap(path, mode="r")
+-    except ValueError:
+-        return tifffile.imread(path)
++    """Read a TIFF into an array this process owns.
++
++    This used to memory-map the file, which handed every caller of
++    :func:`load_surface`, :func:`read_image` and :func:`load_tifxyz_mask` an
++    array that pinned its backing file for as long as they kept it, with no
++    close path -- issue #1671's list of locked files starts with ``x.tif``.
++    The mapped branch applied to exactly the files that matter here: the
++    uncompressed ``x/y/z.tif`` grids that VC's C++ QuadSurface writes. Nothing
++    reads them lazily, though -- ``core``'s neighbour arithmetic differences
++    the whole grid against itself -- so the mapping only ever deferred a read
++    that always happened. The trade is evictable page cache for resident RAM
++    of the same size: three float32 grids per surface, and ``register_render``
++    loads two surfaces at once.
++    """
++    return tifffile.imread(path)
+ 
+ 
+ def load_tifxyz_mask(
+@@ -234,7 +264,12 @@ def __init__(
+         self.array[:] = fill_value
+ 
+     def close(self) -> None:
++        # Callers are handed ``self.array`` (core.py's optional output arrays),
++        # so dropping this one reference is not enough to release the mapping;
++        # on Windows the unlink below then fails. Every read of the raster
++        # happens before its owner closes, so ending the mapping here is safe.
+         self.array.flush()
++        close_memmap(self.array)
+         del self.array
+         self.path.unlink(missing_ok=True)
+ 
+diff --git a/vesuvius/src/vesuvius/tifxyz_label_transfer/view_alignment_napari.py b/vesuvius/src/vesuvius/tifxyz_label_transfer/view_alignment_napari.py
+index 88da02e8ef..37fb332057 100644
+--- a/vesuvius/src/vesuvius/tifxyz_label_transfer/view_alignment_napari.py
++++ b/vesuvius/src/vesuvius/tifxyz_label_transfer/view_alignment_napari.py
+@@ -34,7 +34,7 @@
+ 
+ from .core import transfer_array as transfer_surface_array
+ from .estimate_canvas_offset import measure_render_shift
+-from .io import load_surface as load_full_surface
++from .io import close_memmap, load_surface as load_full_surface
+ from .prepare_canvas_offset_evidence import (
+     DEFAULT_INK_ROOT,
+     DEFAULT_OPEN_DATA_ROOT,
+@@ -591,7 +591,12 @@ def preview_cache_name(name: str, factor: int) -> str:
+ 
+ 
+ def read_render_tiff(path: Path) -> np.ndarray:
+-    """Open a cached render without copying the complete raster into RAM."""
++    """Open a cached render without copying the complete raster into RAM.
++
++    The result may be a live mapping of ``path``, which pins the file until it
++    is released; pass it to :func:`close_memmap` when done, or call
++    :func:`read_render_array` instead to get an array that owns its memory.
++    """
+ 
+     try:
+         return tifffile.memmap(path, mode="r")
+@@ -601,6 +606,29 @@ def read_render_tiff(path: Path) -> np.ndarray:
+         return tifffile.imread(path)
+ 
+ 
++def read_render_array(path: Path) -> np.ndarray:
++    """Read a cached render into an array this process owns.
++
++    Every render handed back to a caller goes through here. Returning the
++    mapping itself leaves ``path`` open for as long as the caller keeps the
++    array: POSIX still allows the file to be unlinked or replaced, Windows
++    refuses with a sharing violation, so a mapping that escapes this module
++    has no end of life anyone can reach.
++
++    The cost is that an uncompressed cache is now resident rather than paged:
++    one render per call, the largest being ``load_middle_three_max``'s level-2
++    composites (>200 MiB, see ``prepare_canvas_offset_evidence``).
++    """
++
++    render = read_render_tiff(path)
++    if not isinstance(render, np.memmap):
++        return render
++    try:
++        return np.array(render)
++    finally:
++        close_memmap(render)
++
++
+ def read_tiff_nearest(path: Path, shape: tuple[int, int]) -> np.ndarray:
+     """Read a 2D TIFF directly at ``shape`` without materialising it whole.
+ 
+@@ -735,7 +763,7 @@ def load_middle_three_max(
+         raise ValueError("plane_count must be a positive odd integer")
+     if cache_path.is_file():
+         print(f"Using cached middle-{plane_count} max: {cache_path}")
+-        return read_render_tiff(cache_path)
++        return read_render_array(cache_path)
+     if "://" not in root_url:
+         info = inspect_rclone_zarr(root_url, preferred_level)
+         middle = info.shape[0] // 2
+@@ -755,7 +783,7 @@ def load_middle_three_max(
+         print(
+             f"Using rclone-backed middle-{plane_count} max: {cache_path}"
+         )
+-        return read_render_tiff(cache_path)
++        return read_render_array(cache_path)
+ 
+     raise ValueError(
+         "HTTP/URL zarr access is disabled; data must be read with "
+@@ -807,7 +835,7 @@ def evidence_comparison_render(
+             return None
+         path = copied_path
+     print(f"Using prepared {comparison_name} render: {path}")
+-    return read_render_tiff(path)
++    return read_render_array(path)
+ 
+ 
+ def evidence_center_render(case: Case, key: str) -> np.ndarray | None:
+@@ -871,7 +899,7 @@ def _load_registered_render_cache(
+         cache_report = json.loads(cache_report_path.read_text(encoding="utf-8"))
+         comparable = {key: cache_report.get(key) for key in expected}
+         if comparable == expected:
+-            return read_render_tiff(cache)
++            return read_render_array(cache)
+     except (OSError, ValueError, TypeError):
+         pass
+     return None
+@@ -948,7 +976,7 @@ def register_render(
+         encoding="utf-8",
+     )
+     print(f"Cached TIFXYZ-registered surface render -> {cache}")
+-    return read_render_tiff(cache)
++    return read_render_array(cache)
+ 
+ 
+ def report_affine_matrix(
+@@ -1075,8 +1103,8 @@ def load_diagnostic_renders(
+                 source_path = Path(self_report[source_key])
+                 target_path = Path(self_report[target_key])
+                 if source_path.is_file() and target_path.is_file():
+-                    source_image = read_render_tiff(source_path)
+-                    target_image = read_render_tiff(target_path)
++                    source_image = read_render_array(source_path)
++                    target_image = read_render_array(target_path)
+                     plan_path = self_report_path.with_name("plan.json")
+                     plan = json.loads(plan_path.read_text(encoding="utf-8"))
+                     bounds = [
+@@ -1282,7 +1310,7 @@ def prepare_case(
+         source_render = matched_source_render
+         if source_render is None:
+             if source_cache.is_file():
+-                source_render = read_render_tiff(source_cache)
++                source_render = read_render_array(source_cache)
+                 source_render_kind = "middle3-max"
+             else:
+                 source_render = evidence_center_render(
+diff --git a/vesuvius/tests/tifxyz_label_transfer/test_io.py b/vesuvius/tests/tifxyz_label_transfer/test_io.py
+index c4263ce811..50539e3b3f 100644
+--- a/vesuvius/tests/tifxyz_label_transfer/test_io.py
++++ b/vesuvius/tests/tifxyz_label_transfer/test_io.py
+@@ -2,6 +2,7 @@
+ 
+ import json
+ from pathlib import Path
++import shutil
+ import tempfile
+ import unittest
+ from unittest import mock
+@@ -10,10 +11,12 @@
+ import tifffile
+ 
+ from vesuvius.tifxyz_label_transfer.io import (
++    close_memmap,
+     load_surface,
+     read_image,
+     read_image_shape,
+     StreamingTiffOutputs,
++    TemporaryRaster,
+ )
+ from tests.zarr_utils import create_v2_group_array
+ 
+@@ -149,6 +152,79 @@ def test_high_resolution_mask_matches_quad_surface_semantics(self) -> None:
+         expected[1, 2] = False
+         np.testing.assert_array_equal(surface.valid, expected)
+ 
++    def test_readers_and_temporary_rasters_leave_no_file_mapped(self) -> None:
++        """Nothing this module hands back may keep its file mapped.
++
++        A mapping that outlives the call pins the file: on POSIX it merely
++        survives unlink, but on Windows the file cannot be removed at all,
++        which is what made every temporary directory in this suite fail to
++        clean up. Both platforms can see it in the returned arrays.
++        """
++
++        def maps_a_file(array: object) -> bool:
++            while array is not None:
++                if isinstance(array, np.memmap):
++                    return True
++                array = getattr(array, "base", None)
++            return False
++
++        temporary = Path(tempfile.mkdtemp())
++        self.addCleanup(shutil.rmtree, temporary, ignore_errors=True)
++        surface_path = temporary / "surface.tifxyz"
++        surface_path.mkdir()
++        grid = np.zeros((2, 3), dtype=np.float32)
++        for axis in ("x", "y", "z"):
++            tifffile.imwrite(surface_path / f"{axis}.tif", grid, metadata=None)
++        (surface_path / "meta.json").write_text(
++            json.dumps({"scale": [1.0, 1.0]}), encoding="utf-8"
++        )
++        label_path = temporary / "label.tif"
++        tifffile.imwrite(
++            label_path, np.zeros((2, 3), dtype=np.uint8), metadata=None
++        )
++
++        surface = load_surface(surface_path, use_mask=False)
++        label = read_image(label_path)
++
++        for array in (surface.x, surface.y, surface.z, label):
++            self.assertFalse(maps_a_file(array))
++
++        # A caller holding one of the raster's own views must not stop its
++        # owner from releasing the backing file.
++        raster = TemporaryRaster(
++            temporary, (2, 3), np.dtype(np.uint8), 0, ".probe-"
++        )
++        raster_path = raster.path
++        escaped_view = raster.array[:1]
++        raster.close()
++        del escaped_view
++        self.assertFalse(raster_path.exists())
++
++        # Removable immediately, with the loaded arrays still referenced.
++        for item in (label_path, *surface_path.iterdir()):
++            item.unlink()
++        surface_path.rmdir()
++        temporary.rmdir()
++        self.assertFalse(temporary.exists())
++
++    def test_close_memmap_refuses_a_view_of_the_mapping(self) -> None:
++        """Closing through a view would close the parent for everyone.
++
++        NumPy copies ``_mmap`` onto every view, so the naive call succeeds and
++        leaves the owner reading freed pages -- a segfault, not an exception.
++        """
++        temporary = Path(tempfile.mkdtemp())
++        self.addCleanup(shutil.rmtree, temporary, ignore_errors=True)
++        raster = TemporaryRaster(
++            temporary, (2, 3), np.dtype(np.uint8), 0, ".probe-"
++        )
++        self.addCleanup(raster.close)
++
++        with self.assertRaises(ValueError):
++            close_memmap(raster.array[:1])
++
++        self.assertFalse(raster.array._mmap.closed)
++
+ 
+ if __name__ == "__main__":
+     unittest.main()
+diff --git a/vesuvius/tests/tifxyz_label_transfer/test_view_alignment_napari.py b/vesuvius/tests/tifxyz_label_transfer/test_view_alignment_napari.py
+index 58c0daa088..2d91ca542f 100644
+--- a/vesuvius/tests/tifxyz_label_transfer/test_view_alignment_napari.py
++++ b/vesuvius/tests/tifxyz_label_transfer/test_view_alignment_napari.py
+@@ -2,6 +2,7 @@
+ 
+ from pathlib import Path
+ import json
++import shutil
+ import tempfile
+ import unittest
+ from unittest import mock
+@@ -365,6 +366,32 @@ def test_uncompressed_render_cache_is_memory_mapped(self) -> None:
+             self.assertIsInstance(actual, np.memmap)
+             np.testing.assert_array_equal(actual, expected)
+ 
++            # read_render_tiff hands back a live mapping, so this test owns it
++            # and has to release it before temp_dir is removed.
++            viewer.close_memmap(actual)
++
++    def test_render_array_reader_leaves_the_cache_file_unmapped(self) -> None:
++        """Renders handed to a caller must not keep their cache file mapped.
++
++        read_render_tiff maps deliberately, but a mapping that escapes has no
++        end of life the caller can reach: on POSIX it silently pins the file,
++        and on Windows the cache can then be neither replaced nor deleted.
++        """
++        temp_dir = Path(tempfile.mkdtemp())
++        self.addCleanup(shutil.rmtree, temp_dir, ignore_errors=True)
++        path = temp_dir / "render.tif"
++        expected = np.arange(12, dtype=np.uint8).reshape(3, 4)
++        tifffile.imwrite(path, expected, metadata=None)
++
++        actual = viewer.read_render_array(path)
++
++        self.assertNotIsInstance(actual, np.memmap)
++        self.assertNotIsInstance(actual.base, np.memmap)
++        # Removable straight away, with the render still referenced.
++        path.unlink()
++        temp_dir.rmdir()
++        np.testing.assert_array_equal(actual, expected)
++
+     def test_centered_thirteen_plane_max_selects_six_each_side(self) -> None:
+         with tempfile.TemporaryDirectory() as temp_dir:
+             cache = Path(temp_dir) / "middle13.tif"

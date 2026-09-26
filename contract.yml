@@ -1,0 +1,672 @@
+# contract.yml
+#
+# Machine-checkable contribution contract for the villa repository.
+#
+# Derived from:
+#   CONTRIBUTING.md
+#   .github/pull_request_template.md
+#   .github/ISSUE_TEMPLATE/issue.md
+#   .github/CODEOWNERS
+#   .github/workflows/pr-time-limits.yml
+#   .github/workflows/large-pr-review-gate.yml
+#
+# Field definitions
+# -----------------
+# id              Stable slug. Never reuse or rename after first publication.
+# source          file + lines from which the rule is drawn.
+#                 source: inferred  means no verbatim statement exists; those
+#                 entries carry a `rationale` field explaining the inference.
+# quote           Verbatim text from the source document.
+# applies_to      all | bugfix | feature | llm-assisted
+#                 Use a YAML list when more than one value applies.
+# check           Mechanical procedure executable by a reviewer with the PR
+#                 diff, the PR body, and shell access. No judgement calls.
+# severity        blocker  — PR must not merge until resolved
+#                 major    — strong expectation; merge should be blocked absent
+#                            explicit maintainer override
+#                 nit      — informational; does not block merge
+# failure_message One sentence to show a contributor who fails this rule.
+# rationale       Required on inferred rules. Absent on stated rules.
+
+rules:
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # SECTION 1 — General contribution rules
+  # Source: CONTRIBUTING.md §"Contribution Guidelines" lines 17–22
+  # ──────────────────────────────────────────────────────────────────────────
+
+  - id: real-scroll-data-origin
+    source:
+      file: CONTRIBUTING.md
+      lines: "17-18"
+    quote: >-
+      PRs for fixes or improvements must come as a result of you running the
+      tool on real scroll data in persuit of one of the goals of this project.
+      Given the experimental and constantly changing nature of this codebase we
+      do not intend to support every script or line of code ever commited. We
+      are only interested in supporting things which are actually used by humans.
+    applies_to: all
+    check: >-
+      Read the PR body. Confirm it contains a first-person account of the
+      contributor personally running a tool from this repository on real
+      Vesuvius scroll data. The account must be specific: it must name a
+      concrete tool or script (e.g. vc_render, vesuvius.predict, vc_grow_seg_from_seed)
+      and a real data artefact (a named scroll, a segment ID, a .volpkg path).
+      Reject if the body contains only abstract or hypothetical claims ("this
+      would help users who…") with no personal session described.
+    severity: blocker
+    failure_message: >-
+      Describe the real scroll-data session that led to this PR — which tool
+      you ran, on which data, and what you were trying to accomplish.
+
+  - id: bugfix-error-screenshot
+    source:
+      file: CONTRIBUTING.md
+      lines: "19"
+    quote: >-
+      Any bugfix PR must be accompanied by a screenshot of the error (either
+      terminal or within the tool), and the script/tool running without error
+      afterward.
+    applies_to: bugfix
+    check: >-
+      Determine whether the PR is a bugfix: the title or a label contains
+      "fix", "bug", or "crash"; or the PR body's Before section describes
+      an error, crash, or unexpected failure. If so, verify that the PR body
+      or its attached files contain BOTH of the following artefacts:
+      (a) a screenshot or copy-pasted terminal block showing the error
+          that existed before this PR; AND
+      (b) a screenshot or copy-pasted terminal block showing the tool
+          completing successfully after this PR.
+      Reject if either artefact is absent.
+    severity: blocker
+    failure_message: >-
+      Attach two artefacts: (a) a screenshot or terminal output showing the
+      error before your fix, and (b) a screenshot or terminal output showing
+      the tool running without error after your fix.
+
+  - id: no-synthetic-data
+    source:
+      file: CONTRIBUTING.md
+      lines: "20"
+    quote: >-
+      Bugfixes or improvements must be run on real scroll data. Synthetic or
+      toy examples are not accepted.
+    applies_to: all
+    check: >-
+      Read the One real example and Proof sections of the PR body. Reject if
+      the input described is any of: a generated or synthetic dataset, a toy
+      numpy array, a randomly generated volume, a standard ML benchmark
+      (MNIST, CIFAR, ImageNet, etc.), or any data that is not derived from a
+      real Vesuvius papyrus scroll. Accepting inputs include: a named scroll
+      (e.g. "Scroll 1", "PHerc 0332"), a specific segment ID, a .volpkg file
+      from a Vesuvius challenge release, or another documented real-scroll
+      artefact. Vague phrases such as "a 3D volume", "some test data", or
+      "sample input" are not acceptable.
+    severity: blocker
+    failure_message: >-
+      Replace synthetic or toy data with a real Vesuvius scroll dataset and
+      re-run; synthetic and toy examples are not accepted.
+
+  - id: motivation-section
+    source:
+      file: CONTRIBUTING.md
+      lines: "21"
+    quote: >-
+      PRs must contain a motivation section, detailing what it is you were
+      attempting to do when this issue arose (ex: "i was attempting to use
+      `vc_grow_seg_from_seed` in this volume to do some ink exploration when
+      this error popped up").
+    applies_to: all
+    check: >-
+      Read the PR body. Confirm it contains at least one sentence that (a) is
+      written in the first person, (b) names a specific tool, script, or
+      workflow step from this repository, and (c) describes the scroll-data
+      task the contributor was performing when the problem arose or the
+      improvement was conceived. A dedicated "Motivation" heading is not
+      required; a qualifying sentence anywhere in the body (including inside
+      the One real example or Why / where this is useful fields) is sufficient.
+      Reject if no such sentence is present.
+    severity: blocker
+    failure_message: >-
+      Add a sentence explaining what scroll-data task you were working on
+      when this issue arose, naming the specific tool or workflow step.
+
+  - id: before-after-comparison
+    source:
+      file: CONTRIBUTING.md
+      lines: "22"
+    quote: >-
+      Where applicable, images or videos must be provided comparing results
+      against current methods (ie. ink detection, segmentation, etc).
+    applies_to:
+      - feature
+      - bugfix
+    check: >-
+      Determine whether the PR modifies a pipeline whose output is visually or
+      metrically comparable: look for changed files under vesuvius/,
+      ink-detection/, volume-cartographer/, segmentation/, lasagna/, or
+      spiral-fitting/. If yes, verify the PR body or attachments include
+      at least one of: side-by-side images, a video clip, or a quantitative
+      metric table comparing the output of the current codebase to the output
+      of this PR, using the same real scroll input. Reject if this comparison
+      is absent. Skip (mark nit) only if the PR exclusively modifies CI,
+      documentation, or non-pipeline tooling.
+    severity: major
+    failure_message: >-
+      Provide side-by-side images, a video, or a metric table comparing
+      your output to the current method's output on the same real scroll data.
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # SECTION 2 — AI / LLM Guidelines
+  # Source: CONTRIBUTING.md §"AI Guidelines" lines 31–37
+  # ──────────────────────────────────────────────────────────────────────────
+
+  - id: llm-human-trigger
+    source:
+      file: CONTRIBUTING.md
+      lines: "32"
+    quote: >-
+      PRs for bugfixes or improvements must come as a result of a human
+      interacting with the codebase in an attempt to work on the scroll data.
+    applies_to: llm-assisted
+    check: >-
+      A PR is treated as llm-assisted if its body, commit messages, or review
+      comments mention an LLM tool (ChatGPT, Claude, Copilot, Cursor, Codex,
+      Gemini, etc.), or if the diff shows bulk-LLM signatures: mass
+      reformatting, wholesale docstring generation, speculative refactors
+      across unrelated files, or generic "improve code quality" changes with
+      no scroll-data context. For any such PR, confirm the body contains a
+      first-person account of a human working on real scroll data that
+      preceded and motivated the LLM involvement. The human must have
+      discovered the need; the LLM may have helped implement the solution.
+      Reject if the body only describes what the LLM did with no personal
+      scroll-data session framing it.
+    severity: blocker
+    failure_message: >-
+      Describe the real scroll-data session you were personally conducting
+      when you decided this change was needed; LLM involvement must be
+      preceded by a human use-case on real scroll data.
+
+  - id: llm-human-commentary
+    source:
+      file: CONTRIBUTING.md
+      lines: "33"
+    quote: >-
+      Any LLM generated PR must be accompanied by human-written commentary
+      explaining why this PR is relevant or useful.
+    applies_to: llm-assisted
+    check: >-
+      For llm-assisted PRs: confirm the PR body contains at least one
+      paragraph, written in the contributor's own words, that explains why
+      this change matters to someone doing real scroll work. A verbatim
+      LLM response pasted as the description does not satisfy this rule.
+      Indicators of human authorship: first-person personal narrative,
+      specific named scroll or segment data, workflow context that reflects
+      real use. Indicators of LLM prose: impersonal register, exhaustive
+      bullet lists without personal grounding, generic "this improves X by
+      doing Y" framing with no real-session context. Reject if the entire
+      description reads as LLM-generated.
+    severity: blocker
+    failure_message: >-
+      Add commentary in your own words — not the LLM's — explaining why
+      this change matters to your real scroll-data work.
+
+  - id: llm-concise-description
+    source:
+      file: CONTRIBUTING.md
+      lines: "34"
+    quote: >-
+      The description of what you propose to change and why should be as
+      concise and jargon-free as possible.
+    applies_to: llm-assisted
+    check: >-
+      For llm-assisted PRs: read the PR body above the ## Details heading.
+      Flag if the summary exceeds approximately 300 words, or if it uses
+      unexplained acronyms, dense ML notation, or implementation minutiae
+      that require domain expertise to parse. The ## Details section may
+      contain technical depth. Flag as major; do not block on word count
+      alone — combine with poor clarity.
+    severity: major
+    failure_message: >-
+      Shorten and simplify your description; state what changed and why in
+      plain language and move implementation detail to the ## Details section.
+
+  - id: llm-real-scroll-validation
+    source:
+      file: CONTRIBUTING.md
+      lines: "35"
+    quote: >-
+      Usefulness of any change must be calculated on real scroll data.
+      Synthetic or toy examples are not allowed.
+    applies_to: llm-assisted
+    check: >-
+      For llm-assisted PRs: apply all checks from no-synthetic-data.
+      Additionally confirm that the proof or example was produced by the
+      contributor themselves by running this PR's specific code, not lifted
+      from prior results, documentation screenshots, or generated outputs.
+      Reject if synthetic data is used or if the proof is clearly disconnected
+      from the diff in this PR.
+    severity: blocker
+    failure_message: >-
+      Your proof must use real Vesuvius scroll data and must have been
+      produced by running this PR's code; synthetic examples are not allowed.
+
+  - id: llm-human-review
+    source:
+      file: CONTRIBUTING.md
+      lines: "36"
+    quote: >-
+      We expect that you have reviewed the code yourself for
+      simplicity/accuracy.
+    applies_to: llm-assisted
+    check: >-
+      For llm-assisted PRs: confirm the PR body or an author comment
+      explicitly states the contributor personally read the diff and verified
+      it for correctness and simplicity. Any of the following satisfy the
+      rule: a dedicated checkbox ticked, a sentence such as "I reviewed the
+      generated diff", or inline comments in the PR addressing specific code
+      choices. Reject if there is no evidence the contributor inspected the
+      LLM-generated code.
+    severity: major
+    failure_message: >-
+      Add a statement confirming you personally read and verified the
+      LLM-generated diff for correctness and simplicity.
+
+  - id: llm-no-fishing-expedition
+    source:
+      file: CONTRIBUTING.md
+      lines: "37"
+    quote: >-
+      We may close PRs which appear to be simple "fishing expeditions" for
+      llms (ie. "claude find bugs in this codebase") unrelated to humans
+      actually using the code in pursuit of our goals.
+    applies_to: llm-assisted
+    check: >-
+      For llm-assisted PRs, assess whether the diff constitutes a focused,
+      motivated change. Flag as a fishing expedition if two or more of the
+      following signals are present:
+      (a) the diff spans more than three unrelated subproject directories
+          (e.g. touches vesuvius/, volume-cartographer/, AND foundation/
+          with no single coordinating bug or feature);
+      (b) changes are predominantly cosmetic: mass docstring additions,
+          comment rewrites, or style-only edits with no behaviour change;
+      (c) the PR body reads as if the LLM was given the repository and asked
+          to find improvements, with no specific scroll-data session motivating
+          the change.
+      Reject (severity: blocker) if two or more signals are present.
+    severity: blocker
+    failure_message: >-
+      This PR appears to be an LLM codebase sweep with no specific human
+      use-case; close it and re-open a focused PR once you have a concrete
+      scroll-data session that motivated the change.
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # SECTION 3 — Pull request template fields
+  # Source: .github/pull_request_template.md lines 1–17
+  # All six named fields are individually checkable; an additional structural
+  # rule ensures the template was not deleted wholesale.
+  # ──────────────────────────────────────────────────────────────────────────
+
+  - id: pr-template-structure
+    source: inferred
+    rationale: >-
+      CONTRIBUTING.md line 26 requires contributors to "follow the pull
+      request template". The six individual field rules below are only
+      enforceable if the template headings are present in the PR body.
+      Deleting the template structure silently voids all six checks.
+    quote: >-
+      When opening a pull request, please follow the pull request template.
+      It asks for a concise explanation, one real example, and direct
+      before/after evidence before any additional detail.
+    applies_to: all
+    check: >-
+      Scan the PR body for the six heading strings used in the template:
+      "In one sentence", "One real example", "Before", "After this PR",
+      "Proof", "Why / where this is useful". Reject if any two or more of
+      these headings are absent, which indicates the template was replaced
+      rather than filled in.
+    severity: major
+    failure_message: >-
+      Do not delete the PR template headings; fill in each section rather
+      than replacing the template structure.
+
+  - id: pr-one-sentence-summary
+    source:
+      file: .github/pull_request_template.md
+      lines: "1"
+    quote: >-
+      **In one sentence:** <!-- Explain what someone can do with this; don't
+      list features. -->
+    applies_to: all
+    check: >-
+      Locate the "In one sentence:" heading in the PR body. Confirm the
+      placeholder HTML comment has been replaced with real text. Confirm the
+      content is a single sentence (at most two) describing a user-facing
+      capability, not a bulleted list and not a copy of the PR title. Reject
+      if the section is blank, contains only the HTML placeholder comment, or
+      contains three or more sentences.
+    severity: major
+    failure_message: >-
+      Fill in "In one sentence" with a single sentence describing what a
+      user can do with this PR — not a list of features.
+
+  - id: pr-one-real-example
+    source:
+      file: .github/pull_request_template.md
+      lines: "3"
+    quote: >-
+      **One real example:** Starting with [real data/input], I [action], and
+      it produced [result].
+    applies_to: all
+    check: >-
+      Locate the "One real example:" section. Confirm that all three
+      placeholder tokens ([real data/input], [action], [result]) have been
+      replaced with concrete specifics: a named real dataset or file, a real
+      command or action, and a real observed output. Reject if the section
+      is blank, still contains square-bracket placeholders, or uses vague
+      language ("some data", "a volume", "an input file") instead of
+      specifics.
+    severity: blocker
+    failure_message: >-
+      Complete "One real example" with your actual data, command, and result
+      — replace every placeholder in brackets with real specifics.
+
+  - id: pr-before-section
+    source:
+      file: .github/pull_request_template.md
+      lines: "5"
+    quote: >-
+      **Before:** <!-- What happened without this PR? -->
+    applies_to: all
+    check: >-
+      Locate the "Before:" heading. Confirm the HTML placeholder comment has
+      been replaced with a concrete description of the behaviour or failure
+      that existed before this PR. Reject if blank or if only the placeholder
+      comment remains.
+    severity: major
+    failure_message: >-
+      Fill in the "Before" section describing what happened without this PR.
+
+  - id: pr-after-section
+    source:
+      file: .github/pull_request_template.md
+      lines: "7"
+    quote: >-
+      **After this PR:** <!-- What happens now? -->
+    applies_to: all
+    check: >-
+      Locate the "After this PR:" heading. Confirm the HTML placeholder has
+      been replaced with a concrete description of the new behaviour. Reject
+      if blank or if only the placeholder remains.
+    severity: major
+    failure_message: >-
+      Fill in "After this PR" describing the new behaviour.
+
+  - id: pr-proof-attached
+    source:
+      file: .github/pull_request_template.md
+      lines: "9"
+    quote: >-
+      **Proof:** <!-- Attach the image, video, output, or benchmark. Use the
+      same input/settings for comparisons and say what we should look at. -->
+    applies_to: all
+    check: >-
+      Locate the "Proof:" section. Confirm it contains at least one concrete
+      artefact: an embedded image (Markdown image syntax or GitHub file
+      attachment), a video link, a pasted terminal output block (fenced code),
+      or a benchmark table with numbers. A verbal description with no attached
+      evidence does not satisfy this rule. Reject if the section is blank or
+      contains only the placeholder comment.
+    severity: blocker
+    failure_message: >-
+      Attach real proof in the "Proof" section — an image, video, terminal
+      output block, or benchmark table; a verbal description alone is not
+      sufficient.
+
+  - id: proof-same-input
+    source:
+      file: .github/pull_request_template.md
+      lines: "9"
+    quote: >-
+      Use the same input/settings for comparisons and say what we should look
+      at.
+    applies_to: all
+    check: >-
+      Cross-reference the "One real example" section and the "Proof" section.
+      Confirm that both describe the same dataset, the same scroll or segment,
+      and equivalent settings (resolution, checkpoint, command flags). Reject
+      if the proof uses different input or different settings than the example
+      without explicit explanation, or if the proof does not identify what the
+      reviewer should look at (e.g. "see the highlighted region" or "compare
+      the false-positive rate in column 3").
+    severity: major
+    failure_message: >-
+      Your proof must use the same input and settings as your example, and
+      must say what the reviewer should look at.
+
+  - id: pr-usefulness-section
+    source:
+      file: .github/pull_request_template.md
+      lines: "11"
+    quote: >-
+      **Why / where this is useful:** <!-- Who would use this result, and what
+      can they do next? -->
+    applies_to: all
+    check: >-
+      Locate the "Why / where this is useful:" section. Confirm the placeholder
+      has been replaced with text that identifies (a) a concrete audience (e.g.
+      "people segmenting Scroll 1 with VC3D", "anyone running vesuvius.predict
+      on macOS") and (b) a next action they can take with the result. Reject if
+      blank or if only the placeholder remains.
+    severity: major
+    failure_message: >-
+      Fill in "Why / where this is useful" naming who benefits and what they
+      can do next.
+
+  - id: pr-verification-checkbox
+    source:
+      file: .github/pull_request_template.md
+      lines: "13"
+    quote: >-
+      - [ ] I personally verified that the example and proof above were
+      produced by this PR on the stated data.
+    applies_to: all
+    check: >-
+      Locate the checkbox line "I personally verified that the example and
+      proof above were produced by this PR on the stated data." in the PR
+      body. Confirm it is checked: the raw Markdown must read `- [x]` (capital
+      or lower-case X), not `- [ ]`. Reject if unchecked or if the line is
+      absent entirely.
+    severity: blocker
+    failure_message: >-
+      Check the verification checkbox to confirm you personally ran this PR's
+      code and produced the example and proof shown.
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # SECTION 4 — Automated time limits
+  # Source: .github/workflows/pr-time-limits.yml
+  # Runs daily at 00:00 America/Los_Angeles (cron "0 0 * * *", line 5–6).
+  # Logic: shell script, lines 23–49.
+  # Exemption: PRs labelled "keep-open" are excluded by the jq filter, line 31.
+  # ──────────────────────────────────────────────────────────────────────────
+
+  - id: pr-inactivity-14-days
+    source:
+      file: .github/workflows/pr-time-limits.yml
+      lines: "23,36-41"
+    quote: >-
+      Closed automatically under the repository PR time limits because this
+      PR has had no activity for 14 days.
+    applies_to: all
+    check: >-
+      This rule is enforced automatically by GitHub Actions (workflow
+      "PR time limits", cron daily 00:00 America/Los_Angeles). Manual check:
+      run `gh pr view <PR_NUMBER> --json updatedAt --jq '.updatedAt'` and
+      compare to today. If the PR's updatedAt timestamp is more than 14 days
+      ago AND the PR does not have the label "keep-open", the next scheduled
+      workflow run will close it. The workflow condition is:
+        updated_ts <= (now - 14 days)
+      Warn the contributor proactively; they can reset the timer with any
+      push, comment, or review activity.
+    severity: blocker
+    failure_message: >-
+      This PR has had no activity for 14 days and will be closed automatically
+      on the next daily run; push a commit, add a comment, or apply the
+      "keep-open" label to prevent closure.
+
+  - id: pr-age-28-days
+    source:
+      file: .github/workflows/pr-time-limits.yml
+      lines: "24,42-47"
+    quote: >-
+      Closed automatically under the repository PR time limits because this
+      PR has been open for 28 days without being merged.
+    applies_to: all
+    check: >-
+      This rule is enforced automatically by GitHub Actions (same workflow).
+      Manual check: run `gh pr view <PR_NUMBER> --json createdAt --jq
+      '.createdAt'` and compare to today. If the PR's createdAt timestamp is
+      more than 28 days ago AND the PR does not have the label "keep-open",
+      the next scheduled workflow run will close it regardless of activity.
+      The workflow condition is:
+        created_ts <= (now - 28 days)
+      Note: the 28-day check is an elif branch, so it fires only if the PR
+      was active within the last 14 days but still unmerged after 28 days.
+    severity: blocker
+    failure_message: >-
+      This PR has been open for 28 days without merging and will be closed
+      automatically; address outstanding review feedback or apply "keep-open"
+      if an extension is justified.
+
+  - id: pr-keep-open-exemption
+    source:
+      file: .github/workflows/pr-time-limits.yml
+      lines: "31"
+    quote: >-
+      select([.labels[].name] | index("keep-open") | not)
+    applies_to: all
+    check: >-
+      Both pr-inactivity-14-days and pr-age-28-days are bypassed for any PR
+      that carries the label named exactly "keep-open" (case-sensitive, as
+      matched by the jq filter). Check the PR label list via
+      `gh pr view <PR_NUMBER> --json labels --jq '[.labels[].name]'`.
+      This is an informational/nit rule: applying the label is always valid,
+      but the PR body should document why the extension is warranted.
+    severity: nit
+    failure_message: >-
+      The "keep-open" label exempts a PR from both time limits; document the
+      reason for the extension in the PR body.
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # SECTION 5 — Large PR gate
+  # Source: .github/workflows/large-pr-review-gate.yml lines 26–93
+  # ──────────────────────────────────────────────────────────────────────────
+
+  - id: large-pr-needs-approval
+    source:
+      file: .github/workflows/large-pr-review-gate.yml
+      lines: "26-27,87-90"
+    quote: >-
+      This PR changes ${changedFiles} files (> ${threshold}). Add at least 1
+      approving review to merge.
+    applies_to: all
+    check: >-
+      This rule is enforced automatically by the "Large PR review gate"
+      workflow on every push, re-open, and review event. Manual check:
+        gh pr view <PR_NUMBER> --json changedFiles --jq '.changedFiles'
+      Threshold is 20 files (LARGE_PR_FILE_THRESHOLD env var, line 26).
+      If changedFiles > 20 AND the PR is not a draft AND fewer than one
+      non-author approving review exists (latest state per reviewer,
+      self-reviews excluded), the workflow check fails and merge is blocked.
+      Count current approvals with:
+        gh pr view <PR_NUMBER> --json reviews \
+          --jq '[.reviews[] | select(.state=="APPROVED")] | length'
+    severity: blocker
+    failure_message: >-
+      This PR changes more than 20 files and requires at least one approving
+      review from a non-author before it can be merged.
+
+  - id: large-pr-draft-exempt
+    source:
+      file: .github/workflows/large-pr-review-gate.yml
+      lines: "50-53"
+    quote: >-
+      Draft PR detected — skipping gate.
+    applies_to: all
+    check: >-
+      The large-PR gate is skipped entirely while a PR has draft status.
+      Verify with `gh pr view <PR_NUMBER> --json isDraft --jq '.isDraft'`.
+      This is informational; converting to draft is a valid way to
+      temporarily exempt a work-in-progress from the approval requirement.
+    severity: nit
+    failure_message: >-
+      Mark the PR as a draft while it is still in active development to
+      bypass the large-PR approval gate.
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # SECTION 6 — Code ownership
+  # Source: .github/CODEOWNERS lines 1–19
+  # ──────────────────────────────────────────────────────────────────────────
+
+  - id: codeowners-review-required
+    source:
+      file: .github/CODEOWNERS
+      lines: "1-19"
+    quote: >-
+      * @giorgioangel @pmh47
+    applies_to: all
+    check: >-
+      For every path changed in the PR diff, identify the owning GitHub user(s)
+      using the following CODEOWNERS map (most-specific pattern wins):
+        /deprecated/crackle-viewer/**  ->  @jrudolph
+        /deprecated/vesuvius-c/**      ->  @jrudolph
+        /foundation/**                 ->  @jrudolph
+        /ink-detection/**              ->  @erdpx
+        /lasagna/**                    ->  @hendrikschilling
+        /scrollprize.org/**            ->  @skyward7187, @giorgioangel, @pmh47
+        /vesuvius/**                   ->  @jrudolph, @bruniss
+        /volume-cartographer/**        ->  @hendrikschilling
+        /spiral-fitting/**             ->  @pmh47
+        * (all other paths)            ->  @giorgioangel, @pmh47
+      Run: `git diff --name-only origin/main` to list changed files.
+      For each owning user or group, confirm at least one member has submitted
+      an APPROVED review. GitHub enforces this automatically when branch
+      protection requires CODEOWNERS review; this entry documents the manual
+      equivalent.
+    severity: blocker
+    failure_message: >-
+      This PR modifies files owned by a designated reviewer who has not yet
+      approved it; request a review from the appropriate CODEOWNER.
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # SECTION 7 — Inferred rules
+  # Rules that are logically required by the stated rules but have no single
+  # verbatim source line. Each carries a `rationale` field.
+  # ──────────────────────────────────────────────────────────────────────────
+
+  - id: llm-disclosure
+    source: inferred
+    rationale: >-
+      CONTRIBUTING.md lines 31–37 define a separate rule-set that applies to
+      "LLM generated" PRs, but no disclosure mechanism is specified. Without
+      disclosure the llm-* rules are unenforceable. The existence of the AI
+      Guidelines section implies that contributors must disclose LLM use so
+      reviewers can apply the correct rule-set.
+    quote: >-
+      However, because reviewing PRs takes a significant amount of time away
+      from the goal of unrolling the scrolls, we have a few rules regarding
+      llm assisted PRs.
+    applies_to: llm-assisted
+    check: >-
+      If there is any evidence of LLM involvement — explicit mention in the PR
+      body, commit messages, or review comments (ChatGPT, Claude, Copilot,
+      Cursor, Codex, Gemini, etc.); OR diff patterns consistent with bulk LLM
+      output (mass docstring generation, wholesale reformatting, speculative
+      refactors spanning unrelated files) — treat the PR as llm-assisted and
+      apply all llm-* rules. If LLM involvement is suspected but undisclosed,
+      leave a review comment asking the contributor to confirm or deny before
+      proceeding with the llm-* checks.
+    severity: major
+    failure_message: >-
+      Disclose whether LLM tools were used to generate or substantially assist
+      this PR so that the AI Guidelines can be applied.

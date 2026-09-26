@@ -1,0 +1,490 @@
+{
+ "pr": 1595,
+ "title": "Fix Windows crash: request int64 explicitly in LegacyNumpyRandom.randint",
+ "author": "Pizzakira",
+ "state": "MERGED",
+ "opened": "2026-08-24",
+ "verdict": "REVISE",
+ "findings": [
+  {
+   "checker": "prior-art",
+   "severity": "nit",
+   "rule": {
+    "id": "prior-art/no-prior-art",
+    "source": "inferred",
+    "quote": "Thorough search of corpus found no overlapping prior work."
+   },
+   "evidence": [
+    {
+     "what": "Examined 2 corpus PR(s); none overlap with candidate files or issues.",
+     "where": "corpus/",
+     "output": "candidate files: spiral-fitting/prefetch.py"
+    }
+   ],
+   "suggested_fix": "No prior art detected; proceed with submission.",
+   "confidence": 0.92
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "nit",
+   "rule": {
+    "id": "real-scroll-data-origin/pass",
+    "source": "CONTRIBUTING.md:17-18",
+    "quote": "PRs for fixes or improvements must come as a result of you running the tool on real scroll data in persuit of one of the goals of this project. Given the experimental and constantly changing nature of this codebase we do not intend to support every script or line of code ever commited. We are only i"
+   },
+   "evidence": [
+    {
+     "what": "Body contains first-person account with named tool and real data artefact."
+    }
+   ],
+   "suggested_fix": "No action required.",
+   "confidence": 0.9
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "nit",
+   "rule": {
+    "id": "bugfix-error-screenshot/pass",
+    "source": "CONTRIBUTING.md:19",
+    "quote": "Any bugfix PR must be accompanied by a screenshot of the error (either terminal or within the tool), and the script/tool running without error afterward."
+   },
+   "evidence": [
+    {
+     "what": "PR body contains before-error and after-success artefacts (image, screenshot, or terminal block)."
+    }
+   ],
+   "suggested_fix": "No action required.",
+   "confidence": 0.9
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "nit",
+   "rule": {
+    "id": "no-synthetic-data/pass",
+    "source": "CONTRIBUTING.md:20",
+    "quote": "Bugfixes or improvements must be run on real scroll data. Synthetic or toy examples are not accepted."
+   },
+   "evidence": [
+    {
+     "what": "Body references real Vesuvius scroll data with no synthetic-data signals in evidence sections."
+    }
+   ],
+   "suggested_fix": "No action required.",
+   "confidence": 0.9
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "nit",
+   "rule": {
+    "id": "motivation-section/pass",
+    "source": "CONTRIBUTING.md:21",
+    "quote": "PRs must contain a motivation section, detailing what it is you were attempting to do when this issue arose (ex: \"i was attempting to use `vc_grow_seg_from_seed` in this volume to do some ink exploration when this error popped up\")."
+   },
+   "evidence": [
+    {
+     "what": "Body contains first-person motivation with named tool context."
+    }
+   ],
+   "suggested_fix": "No action required.",
+   "confidence": 0.9
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "nit",
+   "rule": {
+    "id": "before-after-comparison/pass",
+    "source": "CONTRIBUTING.md:22",
+    "quote": "Where applicable, images or videos must be provided comparing results against current methods (ie. ink detection, segmentation, etc)."
+   },
+   "evidence": [
+    {
+     "what": "PR does not modify a comparable pipeline directory; comparison not required."
+    }
+   ],
+   "suggested_fix": "No action required.",
+   "confidence": 0.85
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "nit",
+   "rule": {
+    "id": "llm-human-trigger/pass",
+    "source": "CONTRIBUTING.md:32",
+    "quote": "PRs for bugfixes or improvements must come as a result of a human interacting with the codebase in an attempt to work on the scroll data."
+   },
+   "evidence": [
+    {
+     "what": "Body describes a personal scroll-data session that preceded and motivated LLM use."
+    }
+   ],
+   "suggested_fix": "No action required.",
+   "confidence": 0.9
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "nit",
+   "rule": {
+    "id": "llm-human-commentary/pass",
+    "source": "CONTRIBUTING.md:33",
+    "quote": "Any LLM generated PR must be accompanied by human-written commentary explaining why this PR is relevant or useful."
+   },
+   "evidence": [
+    {
+     "what": "Human authorship score",
+     "output": "human_signals=4, llm_signals=1"
+    },
+    {
+     "what": "Reasoning",
+     "output": "HUMAN: first-person action verb \u2014 e.g. \"aset on Windows 11, I ran fit_spiral.py, and it loaded the whole\"\nHUMAN: personal uncertainty expression \u2014 e.g. \"this on Windows and I have not run the full fit to completion on Linux\"\nHUMAN: specific named scroll/dataset \u2014 e.g. \"**  Starting with a scroll spiral dataset on Windows 11, I ran fit_spiral\"\nHUMAN: personal possession/experience phrase \u2014 e.g. \"production are from my own machine, running the spiral fitter on a real da\"\nLLM: impersonal 'This PR/change' framing \u2014 e.g. \"t32. With this change the same command keeps optimi\""
+    }
+   ],
+   "suggested_fix": "No action required.",
+   "confidence": 0.78
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "nit",
+   "rule": {
+    "id": "llm-concise-description/pass",
+    "source": "CONTRIBUTING.md:34",
+    "quote": "The description of what you propose to change and why should be as concise and jargon-free as possible."
+   },
+   "evidence": [
+    {
+     "what": "Description is 381 words; borderline but acceptable."
+    }
+   ],
+   "suggested_fix": "No action required.",
+   "confidence": 0.9
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "nit",
+   "rule": {
+    "id": "llm-real-scroll-validation/pass",
+    "source": "CONTRIBUTING.md:35",
+    "quote": "Usefulness of any change must be calculated on real scroll data. Synthetic or toy examples are not allowed."
+   },
+   "evidence": [
+    {
+     "what": "Proof and example reference real Vesuvius scroll data with no synthetic signals in the evidence sections."
+    }
+   ],
+   "suggested_fix": "No action required.",
+   "confidence": 0.82
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "major",
+   "rule": {
+    "id": "llm-human-review",
+    "source": "CONTRIBUTING.md:36",
+    "quote": "We expect that you have reviewed the code yourself for simplicity/accuracy."
+   },
+   "evidence": [
+    {
+     "what": "No explicit statement of having reviewed the generated diff",
+     "output": "Body does not contain a sentence confirming personal review of the LLM-generated code."
+    }
+   ],
+   "suggested_fix": "Add a statement confirming you personally read and verified the LLM-generated diff for correctness and simplicity.",
+   "confidence": 0.68
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "nit",
+   "rule": {
+    "id": "llm-no-fishing-expedition/pass",
+    "source": "CONTRIBUTING.md:37",
+    "quote": "We may close PRs which appear to be simple \"fishing expeditions\" for llms (ie. \"claude find bugs in this codebase\") unrelated to humans actually using the code in pursuit of our goals."
+   },
+   "evidence": [
+    {
+     "what": "Focused PR: 0 fishing-expedition signal(s) found (< 2 needed to flag). No signals."
+    }
+   ],
+   "suggested_fix": "No action required.",
+   "confidence": 0.9
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "nit",
+   "rule": {
+    "id": "pr-template-structure/pass",
+    "source": "inferred",
+    "quote": "When opening a pull request, please follow the pull request template. It asks for a concise explanation, one real example, and direct before/after evidence before any additional detail."
+   },
+   "evidence": [
+    {
+     "what": "All 6 template headings present."
+    }
+   ],
+   "suggested_fix": "No action required.",
+   "confidence": 0.9
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "nit",
+   "rule": {
+    "id": "pr-one-sentence-summary/pass",
+    "source": ".github/pull_request_template.md:1",
+    "quote": "**In one sentence:** <!-- Explain what someone can do with this; don't list features. -->"
+   },
+   "evidence": [
+    {
+     "what": "Section \"In one sentence\" is present and filled."
+    }
+   ],
+   "suggested_fix": "No action required.",
+   "confidence": 0.9
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "nit",
+   "rule": {
+    "id": "pr-one-real-example/pass",
+    "source": ".github/pull_request_template.md:3",
+    "quote": "**One real example:** Starting with [real data/input], I [action], and it produced [result]."
+   },
+   "evidence": [
+    {
+     "what": "Section \"One real example\" is present and filled."
+    }
+   ],
+   "suggested_fix": "No action required.",
+   "confidence": 0.9
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "nit",
+   "rule": {
+    "id": "pr-before-section/pass",
+    "source": ".github/pull_request_template.md:5",
+    "quote": "**Before:** <!-- What happened without this PR? -->"
+   },
+   "evidence": [
+    {
+     "what": "Section \"Before\" is present and filled."
+    }
+   ],
+   "suggested_fix": "No action required.",
+   "confidence": 0.9
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "nit",
+   "rule": {
+    "id": "pr-after-section/pass",
+    "source": ".github/pull_request_template.md:7",
+    "quote": "**After this PR:** <!-- What happens now? -->"
+   },
+   "evidence": [
+    {
+     "what": "Section \"After this PR\" is present and filled."
+    }
+   ],
+   "suggested_fix": "No action required.",
+   "confidence": 0.9
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "nit",
+   "rule": {
+    "id": "pr-proof-attached/pass",
+    "source": ".github/pull_request_template.md:9",
+    "quote": "**Proof:** <!-- Attach the image, video, output, or benchmark. Use the same input/settings for comparisons and say what we should look at. -->"
+   },
+   "evidence": [
+    {
+     "what": "Section \"Proof\" is present and filled."
+    }
+   ],
+   "suggested_fix": "No action required.",
+   "confidence": 0.9
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "nit",
+   "rule": {
+    "id": "proof-same-input/pass",
+    "source": ".github/pull_request_template.md:9",
+    "quote": "Use the same input/settings for comparisons and say what we should look at."
+   },
+   "evidence": [
+    {
+     "what": "Proof and example appear to use consistent input; reviewer focus is identified."
+    }
+   ],
+   "suggested_fix": "No action required.",
+   "confidence": 0.9
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "nit",
+   "rule": {
+    "id": "pr-usefulness-section/pass",
+    "source": ".github/pull_request_template.md:11",
+    "quote": "**Why / where this is useful:** <!-- Who would use this result, and what can they do next? -->"
+   },
+   "evidence": [
+    {
+     "what": "Section \"Why / where this is useful\" is present and filled."
+    }
+   ],
+   "suggested_fix": "No action required.",
+   "confidence": 0.9
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "major",
+   "rule": {
+    "id": "pr-verification-checkbox/unverifiable-by-machine",
+    "source": ".github/pull_request_template.md:13",
+    "quote": "- [ ] I personally verified that the example and proof above were produced by this PR on the stated data."
+   },
+   "evidence": [
+    {
+     "what": "Checkbox state in raw Markdown",
+     "output": "- [x]  (ticked)"
+    },
+    {
+     "what": "Machine limitation",
+     "output": "A ticked checkbox does not prove the contributor ran the code. A human reviewer must confirm: (1) does the Before section describe something this diff would actually change? (2) does the After section describe a result that this diff would actually produce? (3) do the screenshots/output blocks match the diff's changes?"
+    }
+   ],
+   "suggested_fix": "Human reviewer: confirm the contributor personally ran this PR's code on the stated data and that the Before/After sections plausibly come from this diff.",
+   "confidence": 1.0
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "nit",
+   "rule": {
+    "id": "pr-inactivity-14-days/pass",
+    "source": ".github/workflows/pr-time-limits.yml:23,36-41",
+    "quote": "Closed automatically under the repository PR time limits because this PR has had no activity for 14 days."
+   },
+   "evidence": [
+    {
+     "what": "PR was updated -3 days ago (< 14-day limit)."
+    }
+   ],
+   "suggested_fix": "No action required.",
+   "confidence": 0.9
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "nit",
+   "rule": {
+    "id": "pr-age-28-days/pass",
+    "source": ".github/workflows/pr-time-limits.yml:24,42-47",
+    "quote": "Closed automatically under the repository PR time limits because this PR has been open for 28 days without being merged."
+   },
+   "evidence": [
+    {
+     "what": "PR is -1 days old (< 28-day limit or already caught by inactivity check)."
+    }
+   ],
+   "suggested_fix": "No action required.",
+   "confidence": 0.9
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "nit",
+   "rule": {
+    "id": "pr-keep-open-exemption/pass",
+    "source": ".github/workflows/pr-time-limits.yml:31",
+    "quote": "select([.labels[].name] | index(\"keep-open\") | not)"
+   },
+   "evidence": [
+    {
+     "what": "PR does not use the 'keep-open' label; rule is informational only."
+    }
+   ],
+   "suggested_fix": "No action required.",
+   "confidence": 0.9
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "nit",
+   "rule": {
+    "id": "large-pr-needs-approval/pass",
+    "source": ".github/workflows/large-pr-review-gate.yml:26-27,87-90",
+    "quote": "This PR changes ${changedFiles} files (> ${threshold}). Add at least 1 approving review to merge."
+   },
+   "evidence": [
+    {
+     "what": "PR changes 1 files (<= 20 threshold); large-PR review gate does not apply."
+    }
+   ],
+   "suggested_fix": "No action required.",
+   "confidence": 0.9
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "nit",
+   "rule": {
+    "id": "large-pr-draft-exempt/pass",
+    "source": ".github/workflows/large-pr-review-gate.yml:50-53",
+    "quote": "Draft PR detected \u2014 skipping gate."
+   },
+   "evidence": [
+    {
+     "what": "PR draft status: False. Gate applies if > 20 files."
+    }
+   ],
+   "suggested_fix": "No action required.",
+   "confidence": 0.9
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "nit",
+   "rule": {
+    "id": "codeowners-review-required/pass",
+    "source": ".github/CODEOWNERS:1-19",
+    "quote": "* @giorgioangel @pmh47"
+   },
+   "evidence": [
+    {
+     "what": "PR is already merged (mergedAt=2026-08-25T17:08:05Z); CODEOWNER review was satisfied at merge. This check applies to pre-submission review only."
+    }
+   ],
+   "suggested_fix": "No action required.",
+   "confidence": 0.9
+  },
+  {
+   "checker": "contract-compliance",
+   "severity": "nit",
+   "rule": {
+    "id": "llm-disclosure/pass",
+    "source": "inferred",
+    "quote": "However, because reviewing PRs takes a significant amount of time away from the goal of unrolling the scrolls, we have a few rules regarding llm assisted PRs."
+   },
+   "evidence": [
+    {
+     "what": "LLM use explicitly disclosed: \"ng note : I used an LLM assistant (Claude Opus 5) while trackin\""
+    }
+   ],
+   "suggested_fix": "No action required.",
+   "confidence": 0.9
+  },
+  {
+   "checker": "evidence",
+   "severity": "major",
+   "rule": {
+    "id": "evidence/no-commits-minimal-repr",
+    "source": "inferred"
+   },
+   "evidence": [
+    {
+     "what": "No after-state commit SHA found in body",
+     "where": "body.md",
+     "output": "Expected a backtick-quoted SHA near 'after' in the Proof section. PR states it cannot provide full before/after."
+    }
+   ],
+   "suggested_fix": "Add the exact commit SHA used for the after-state run, e.g. \"after\" is `<sha>`.",
+   "confidence": 0.92
+  }
+ ],
+ "checker_errors": {},
+ "incumbent": []
+}
