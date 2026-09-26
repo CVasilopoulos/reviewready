@@ -24,7 +24,7 @@ scripts/check_*.py            the script each mode drives
 contract.yml                  27 rules Bob compiled from the repo's own documents
 schemas/finding.json          the finding format every checker emits
 reports/                      per-PR reports and SUMMARY.md
-bob_sessions/                 Bob task session summaries, one per task
+bob_sessions/LEDGER.md        the Bob task list (see PROVENANCE.md: no session screenshots exist)
 corpus/                       ten cached pull requests, scrubbed of personal data
 ```
 

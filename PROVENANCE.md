@@ -6,19 +6,17 @@ what produced each one.
 
 ## Authored by IBM Bob 2.0
 
-| Path | Bob task | Session artefacts |
-|---|---|---|
-| `contract.yml` | 01 compile the contract | `bob_sessions/01-compile-contract.{png,md}` |
-| `checkers/prior_art.*` | 02 | `bob_sessions/02-*.{png,md}` |
-| `checkers/contract_compliance.*` | 03 | `bob_sessions/03-*.{png,md}` |
-| `checkers/evidence.*` | 04 | `bob_sessions/04-*.{png,md}` |
-| `checkers/interface_shape.*` | 05 | `bob_sessions/05-*.{png,md}` |
-| `checkers/subproject_router.*` | 06 | `bob_sessions/06-*.{png,md}` |
-| `reports/*`, `reports/SUMMARY.md` | 07 parallel corpus run | `bob_sessions/07-*.{png,md}` |
-| `ONBOARDING.md` | 08 (optional) | `bob_sessions/08-*.{png,md}` |
+| Path | Bob task |
+|---|---|
+| `contract.yml` | 02 compile the contract |
+| `.bob/custom_modes.yaml` and every `.bob/rules-*/` file | 03, 04, 05 |
+| `scripts/check_prior_art.py` | 03 prior-art reviewer |
+| `scripts/check_contract.py` | 04 contract compliance |
+| `scripts/check_evidence.py` | 05 evidence verifier |
 
-`bob_sessions/` holds the task session consumption summary screenshot and the exported task history
-markdown for every one of these tasks.
+Two planned checkers, interface-shape and subproject-router, were cut when the Bobcoin
+allocation ran out. See the correction at the end of this file for the full split and for
+what happened to the session artefacts.
 
 ## Written outside Bob
 
@@ -60,4 +58,14 @@ Bobcoins were exhausted by then. They are ordinary bug fixes, not new capability
 **Two planned checkers do not exist.** Interface-shape and subproject-router were cut for the
 same reason. The submission claims three checkers, not five.
 
-The Bob session summary screenshot for every Bob task is in `bob_sessions/`.
+**There are no Bob session screenshots.** An earlier draft of this repository shipped six PNG
+files under `bob_sessions/` named as though each were the session consumption summary of one Bob
+task. They were not: all six were byte-identical copies of an unrelated screenshot, of a Codabench
+submission page from a different project. No screenshot of a Bob session was ever captured. The
+files were removed on 2026-09-26 and this paragraph replaces them, rather than quietly deleting
+them, because the earlier commit is public and a judge may have seen it.
+
+What remains as evidence of Bob's authorship is the work itself: `contract.yml`, the three custom
+modes in `.bob/custom_modes.yaml` with their twelve rules files, and the three checker scripts.
+`bob_sessions/LEDGER.md` records the task list. The Bobcoin allocation for this account is
+exhausted, so the sessions cannot be re-run.
